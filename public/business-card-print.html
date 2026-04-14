@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>PureGlim — Print Ready</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    @font-face { font-family:'Otterco'; src:url('/fonts/OttercoDisplay-Regular.otf') format('opentype'); font-weight:400; }
+    @font-face { font-family:'Otterco'; src:url('/fonts/OttercoDisplay-Bold.otf') format('opentype'); font-weight:700; }
+
+    /* ─── Force background colors to print ─── */
+    * {
+      box-sizing: border-box; margin: 0; padding: 0;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    /* ─── Screen styles ─── */
+    body {
+      background: #141918;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 60px 40px 80px; gap: 0;
+      font-family: 'Otterco', 'Avenir Next', sans-serif;
+    }
+
+    .screen-only { display: block; }
+
+    .intro {
+      color: rgba(255,255,255,0.32); font-size: 11px; letter-spacing: 0.14em;
+      text-transform: uppercase; font-family: sans-serif;
+      text-align: center; line-height: 2; margin-bottom: 40px;
+    }
+    .intro strong { color: rgba(255,255,255,0.65); display: block; font-size: 13px; margin-bottom: 4px; }
+
+    .preview-row { display: flex; gap: 24px; margin-bottom: 16px; }
+    .slabel {
+      font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(255,255,255,0.22); font-family: sans-serif; margin-bottom: 8px;
+    }
+
+    /* Screen card: 340×220px (≈ 85×55 × 4) */
+    .card-s {
+      width: 340px; height: 220px;
+      border-radius: 10px; position: relative; overflow: hidden;
+      box-shadow: 0 16px 44px rgba(0,0,0,0.38), 0 0 0 1px rgba(0,0,0,0.08);
+    }
+
+    /* ─── Shared card internals (% units — work at any size) ─── */
+    .bg-mint { background: #d5ece4; }
+
+    .f-top {
+      position: absolute; top: 9%; left: 10%;
+      display: flex; flex-direction: column; gap: 5%;
+    }
+    .f-icon {
+      width: 14%; aspect-ratio: 1;
+      background: rgba(22,62,46,0.09); border-radius: 18%;
+      display: grid; place-items: center; flex-shrink: 0;
+    }
+    .f-icon svg { width: 54%; height: 54%; display: block; fill: #3a6b59; }
+    .f-brand { display: flex; flex-direction: column; gap: 3%; }
+    .f-name {
+      font-family: 'Otterco', sans-serif; font-weight: 700;
+      font-size: 17%; letter-spacing: -0.015em; line-height: 1;
+      color: #163e2e;
+    }
+    .f-sub {
+      font-family: 'Otterco', sans-serif; font-weight: 400;
+      font-size: 4.5%; letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(22,62,46,0.40);
+    }
+    .f-bottom {
+      position: absolute; bottom: 10%; left: 10%; right: 10%;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .srow { display: flex; align-items: center; gap: 3%; }
+    .badge {
+      font-family: 'Otterco', sans-serif; font-weight: 700;
+      font-size: 3.5%; letter-spacing: 0.10em; text-transform: uppercase;
+      padding: 1% 2.5%; border-radius: 2px;
+      color: #3a6b59; background: rgba(58,107,89,0.13);
+    }
+    .f-phone {
+      font-family: 'Otterco', sans-serif; font-weight: 400;
+      font-size: 5%; letter-spacing: 0.03em; color: rgba(22,62,46,0.68);
+    }
+    .f-url {
+      font-family: 'Otterco', sans-serif; font-weight: 400;
+      font-size: 4.4%; letter-spacing: 0.03em; color: rgba(22,62,46,0.32);
+    }
+
+    .b-inner {
+      position: absolute; inset: 0;
+      display: flex; align-items: center;
+      padding: 0 9%; gap: 7%;
+    }
+    .qr-box {
+      flex-shrink: 0; width: 34%; aspect-ratio: 1;
+      background: white; border-radius: 7%;
+      display: grid; place-items: center; padding: 4.5%;
+      box-shadow: 0 1% 4% rgba(22,62,46,0.10);
+    }
+    .qr-box canvas, .qr-box img { display: block; width: 100% !important; height: 100% !important; border-radius: 2%; }
+    .b-text { display: flex; flex-direction: column; gap: 5%; }
+    .b-main {
+      font-family: 'Otterco', sans-serif; font-weight: 700;
+      font-size: 8%; letter-spacing: -0.01em; line-height: 1.2; color: #163e2e;
+    }
+    .b-div { width: 14%; height: 1px; background: rgba(22,62,46,0.20); margin: 1% 0; }
+    .b-sub {
+      font-family: 'Otterco', sans-serif; font-weight: 400;
+      font-size: 3.8%; letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(22,62,46,0.42);
+    }
+    .b-url {
+      font-family: 'Otterco', sans-serif; font-weight: 400;
+      font-size: 4.4%; letter-spacing: 0.03em; color: rgba(22,62,46,0.30);
+    }
+
+    /* ─── Print page (hidden on screen) ─── */
+    .print-page { display: none; }
+
+    /* ─── PRINT ─── */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+
+      html, body {
+        background: white !important;
+        width: 210mm; height: 297mm;
+        padding: 0; margin: 0;
+        display: block;
+      }
+
+      /* hide everything screen-only */
+      .screen-only { display: none !important; }
+
+      /* show print pages */
+      .print-page {
+        display: flex !important;
+        width: 210mm; height: 297mm;
+        align-items: center; justify-content: center;
+        page-break-after: always;
+        background: white;
+      }
+
+      /* bleed wrapper: 91×61mm (85+3mm bleed each side) */
+      .bleed {
+        width: 91mm; height: 61mm;
+        position: relative;
+      }
+
+      /* crop marks */
+      .cm { position: absolute; background: #888; }
+      .cm-tl-h { top: 3mm; left: -5mm;  width: 3.5mm; height: 0.2mm; }
+      .cm-tl-v { top: -5mm; left: 3mm;  width: 0.2mm; height: 3.5mm; }
+      .cm-tr-h { top: 3mm; right: -5mm; width: 3.5mm; height: 0.2mm; }
+      .cm-tr-v { top: -5mm; right: 3mm; width: 0.2mm; height: 3.5mm; }
+      .cm-bl-h { bottom: 3mm; left: -5mm;  width: 3.5mm; height: 0.2mm; }
+      .cm-bl-v { bottom: -5mm; left: 3mm;  width: 0.2mm; height: 3.5mm; }
+      .cm-br-h { bottom: 3mm; right: -5mm; width: 3.5mm; height: 0.2mm; }
+      .cm-br-v { bottom: -5mm; right: 3mm; width: 0.2mm; height: 3.5mm; }
+
+      /* actual card area: exactly 85×55mm */
+      .card-p {
+        position: absolute;
+        top: 3mm; left: 3mm;
+        width: 85mm; height: 55mm;
+        overflow: hidden;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      /* override font sizes with pt for accurate print */
+      .card-p .f-name  { font-size: 26pt !important; }
+      .card-p .f-sub   { font-size: 5.5pt !important; }
+      .card-p .f-phone { font-size: 7.5pt !important; }
+      .card-p .f-url   { font-size: 6.5pt !important; }
+      .card-p .badge   { font-size: 4.5pt !important; padding: 1pt 2.5pt !important; }
+
+      .card-p .f-top   { top: 5mm !important; left: 5mm !important; gap: 2.5mm !important; }
+      .card-p .f-brand { gap: 0.8mm !important; }
+      .card-p .f-icon  { width: 11mm !important; height: 11mm !important; }
+      .card-p .f-bottom{ bottom: 4.5mm !important; left: 5mm !important; right: 5mm !important; }
+      .card-p .srow    { gap: 1.5mm !important; }
+
+      .card-p .b-main  { font-size: 11pt !important; }
+      .card-p .b-sub   { font-size: 5pt !important; }
+      .card-p .b-url   { font-size: 6.5pt !important; }
+      .card-p .b-inner { padding: 0 5mm !important; gap: 3.5mm !important; }
+      .card-p .qr-box  { width: 19mm !important; height: 19mm !important; padding: 1.2mm !important; }
+      .card-p .b-text  { gap: 1.5mm !important; }
+      .card-p .b-div   { margin: 0.4mm 0 !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════ SCREEN PREVIEW ════ -->
+<div class="screen-only">
+  <div class="intro">
+    <strong>PureGlim Business Card — Print Ready</strong>
+    打印步骤：⌘P → 纸张 A4 → 缩放 100%（不勾选"适合页面"）→ 页边距"无" → 勾选"背景图形" → 存为 PDF
+  </div>
+
+  <div class="preview-row">
+    <div>
+      <p class="slabel">Front</p>
+      <div class="card-s bg-mint">
+        <div class="f-top">
+          <div class="f-icon">
+            <svg viewBox="0 0 512 512"><path d="M0 0 C45.859375 13.359375 186.78957272 51.06616592 226 62 C218.72929453 99.02319761 176.1105957 180.44238281 116.06212368 167.05186374 C42.27685547 146.36010742 23.98046875 139.421875 10 136 C3.12736382 135.56863466 -45.72781901 120.76419158 -48 117 C-34.89453125 83.5234375 -6.21826172 16.27587891 0 0 Z" transform="translate(232,332)"/><path d="M0 0 C64.04214478 17.11862183 125.76953125 49.828125 133.54394531 97.39038086 C112.57292411 105.80893648 52.49804688 89.61279297 -12.32446289 72.20507812 C-80.47782898 54.28379822 -90.8125 48.5625 -68.65826006 4.19760766 C-38.41796875 -5.08984375 0 0 0 0 Z" transform="translate(329.8125,269.4375)"/><path d="M0 0 C12.84263039 21.2490015 -3.76611328 90.5456543 -52.296875 269.3125 C-104.296875 256.3125 -65.1843214 108.487216 -25.296875 -1.5625 C0 0 0 0 0 0 Z" transform="translate(449.296875,2.6875)"/><path d="M0 0 C50.51953125 50.87109375 14.91641768 83.82987633 4.8046875 102.9453125 C-54.01953125 60.78125 -32.73574904 35.16551863 0 0 Z" transform="translate(188.01953125,99.21875)"/><path d="M0 0 C70.22119141 3.2746582 61.87547302 17.78259277 -11.52880859 4.5246582 C0 0 0 0 0 0 Z" transform="translate(95.77880859375,338.725341796875)"/><path d="M0 0 C69.90234375 4.51757812 65.90234375 17.51757812 -12.09765625 13.51757812 C0 0 0 0 0 0 Z" transform="translate(61.09765625,394.482421875)"/></svg>
+          </div>
+          <div class="f-brand">
+            <span class="f-name">PureGlim</span>
+            <span class="f-sub">Cleaning</span>
+          </div>
+        </div>
+        <div class="f-bottom">
+          <div class="srow"><span class="badge">SMS</span><span class="f-phone">0449 963 099</span></div>
+          <span class="f-url">pureglim.com.au</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <p class="slabel">Back</p>
+      <div class="card-s bg-mint">
+        <div class="b-inner">
+          <div class="qr-box"><div id="qr-s"></div></div>
+          <div class="b-text">
+            <span class="b-main">Your home,<br>looked after.</span>
+            <div class="b-div"></div>
+            <span class="b-sub">Scan to book a clean</span>
+            <span class="b-url">pureglim.com.au</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PRINT PAGE 1 — Front ════ -->
+<div class="print-page">
+  <div class="bleed">
+    <div class="cm cm-tl-h"></div><div class="cm cm-tl-v"></div>
+    <div class="cm cm-tr-h"></div><div class="cm cm-tr-v"></div>
+    <div class="cm cm-bl-h"></div><div class="cm cm-bl-v"></div>
+    <div class="cm cm-br-h"></div><div class="cm cm-br-v"></div>
+    <div class="card-p bg-mint">
+      <div class="f-top">
+        <div class="f-icon">
+          <svg viewBox="0 0 512 512"><path d="M0 0 C45.859375 13.359375 186.78957272 51.06616592 226 62 C218.72929453 99.02319761 176.1105957 180.44238281 116.06212368 167.05186374 C42.27685547 146.36010742 23.98046875 139.421875 10 136 C3.12736382 135.56863466 -45.72781901 120.76419158 -48 117 C-34.89453125 83.5234375 -6.21826172 16.27587891 0 0 Z" transform="translate(232,332)"/><path d="M0 0 C64.04214478 17.11862183 125.76953125 49.828125 133.54394531 97.39038086 C112.57292411 105.80893648 52.49804688 89.61279297 -12.32446289 72.20507812 C-80.47782898 54.28379822 -90.8125 48.5625 -68.65826006 4.19760766 C-38.41796875 -5.08984375 0 0 0 0 Z" transform="translate(329.8125,269.4375)"/><path d="M0 0 C12.84263039 21.2490015 -3.76611328 90.5456543 -52.296875 269.3125 C-104.296875 256.3125 -65.1843214 108.487216 -25.296875 -1.5625 C0 0 0 0 0 0 Z" transform="translate(449.296875,2.6875)"/><path d="M0 0 C50.51953125 50.87109375 14.91641768 83.82987633 4.8046875 102.9453125 C-54.01953125 60.78125 -32.73574904 35.16551863 0 0 Z" transform="translate(188.01953125,99.21875)"/><path d="M0 0 C70.22119141 3.2746582 61.87547302 17.78259277 -11.52880859 4.5246582 C0 0 0 0 0 0 Z" transform="translate(95.77880859375,338.725341796875)"/><path d="M0 0 C69.90234375 4.51757812 65.90234375 17.51757812 -12.09765625 13.51757812 C0 0 0 0 0 0 Z" transform="translate(61.09765625,394.482421875)"/></svg>
+        </div>
+        <div class="f-brand">
+          <span class="f-name">PureGlim</span>
+          <span class="f-sub">Cleaning</span>
+        </div>
+      </div>
+      <div class="f-bottom">
+        <div class="srow"><span class="badge">SMS</span><span class="f-phone">0449 963 099</span></div>
+        <span class="f-url">pureglim.com.au</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PRINT PAGE 2 — Back ════ -->
+<div class="print-page">
+  <div class="bleed">
+    <div class="cm cm-tl-h"></div><div class="cm cm-tl-v"></div>
+    <div class="cm cm-tr-h"></div><div class="cm cm-tr-v"></div>
+    <div class="cm cm-bl-h"></div><div class="cm cm-bl-v"></div>
+    <div class="cm cm-br-h"></div><div class="cm cm-br-v"></div>
+    <div class="card-p bg-mint">
+      <div class="b-inner">
+        <div class="qr-box"><div id="qr-p"></div></div>
+        <div class="b-text">
+          <span class="b-main">Your home,<br>looked after.</span>
+          <div class="b-div"></div>
+          <span class="b-sub">Scan to book a clean</span>
+          <span class="b-url">pureglim.com.au</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const cfg = { colorDark:"#163e2e", colorLight:"#ffffff", correctLevel: QRCode.CorrectLevel.M };
+  new QRCode(document.getElementById("qr-s"), { ...cfg, text:"https://pureglim.com.au", width:200, height:200 });
+  new QRCode(document.getElementById("qr-p"), { ...cfg, text:"https://pureglim.com.au", width:800, height:800 });
+</script>
+</body>
+</html>

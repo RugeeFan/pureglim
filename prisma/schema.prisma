@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ServiceType {
+  REGULAR
+  END_OF_LEASE
+  COMMERCIAL
+}
+
+enum BookingStatus {
+  NEW
+  CONTACTED
+  QUOTED
+}
+
+model Setting {
+  key       String   @id
+  value     String   @default("")
+  updatedAt DateTime @updatedAt
+}
+
+model QuoteRequest {
+  id            String        @id @default(cuid())
+  serviceType   ServiceType
+  customerName  String
+  phone         String
+  email         String
+  address       String
+  bedrooms      String?
+  bathrooms     String?
+  frequency     String?
+  companyName   String?
+  siteType      String?
+  siteSchedule  String?
+  addOns        Json?
+  estimatedPrice Int?
+  notes         String?
+  preferredDate String?
+  preferredTime String?
+  status        BookingStatus @default(NEW)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}

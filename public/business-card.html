@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PureGlim — Card Pairs</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    @font-face { font-family:'Otterco'; src:url('/fonts/OttercoDisplay-Regular.otf') format('opentype'); font-weight:400; }
+    @font-face { font-family:'Otterco'; src:url('/fonts/OttercoDisplay-Bold.otf') format('opentype'); font-weight:700; }
+
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      background:#141918;
+      display:flex; flex-direction:column; align-items:center;
+      padding:60px 40px 100px; gap:72px;
+      font-family:'Otterco','Avenir Next',sans-serif;
+    }
+    .page-title{
+      color:rgba(255,255,255,0.25); font-size:11px;
+      letter-spacing:0.16em; text-transform:uppercase; font-family:sans-serif;
+    }
+
+    /* ── option wrapper ── */
+    .opt{ display:flex; flex-direction:column; gap:16px; }
+    .opt-header{ display:flex; align-items:baseline; gap:12px; }
+    .opt-num{ font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:rgba(255,255,255,0.18); font-family:sans-serif; }
+    .opt-name{ font-size:19px; font-weight:700; color:rgba(255,255,255,0.68); }
+    .opt-note{ font-size:12px; color:rgba(255,255,255,0.24); font-family:sans-serif; margin-left:auto; }
+
+    /* ── pair row ── */
+    .pair{ display:flex; gap:20px; align-items:flex-start; }
+    .side-label{
+      font-size:9px; letter-spacing:0.14em; text-transform:uppercase;
+      color:rgba(255,255,255,0.2); font-family:sans-serif;
+      margin-bottom:8px;
+    }
+
+    /* ── card shell ── */
+    .card{
+      width:430px; height:278px;
+      border-radius:18px; position:relative; overflow:hidden;
+      box-shadow:0 20px 50px rgba(0,0,0,0.35),0 0 0 1px rgba(0,0,0,0.07);
+    }
+    .mint{ background:#dceee7; }
+    .dark{ background:#091311; }
+
+    /* shared */
+    .badge{
+      font-family:'Otterco',sans-serif; font-weight:700;
+      font-size:8px; letter-spacing:0.1em; text-transform:uppercase;
+      padding:2px 6px; border-radius:3px; flex-shrink:0;
+    }
+    .badge-teal{ color:#3a6b59; background:rgba(58,107,89,0.13); }
+    .badge-mint{ color:rgba(220,238,231,0.9); background:rgba(220,238,231,0.14); }
+    .srow{ display:flex; align-items:center; gap:7px; }
+
+    /* ── BACK (shared across all options) ── */
+    .back-inner{
+      position:absolute; inset:0;
+      display:flex; align-items:center;
+      padding:0 44px; gap:40px;
+    }
+    .qr-box{
+      flex-shrink:0; width:96px; height:96px;
+      background:white; border-radius:12px;
+      display:grid; place-items:center; padding:8px;
+      box-shadow:0 2px 12px rgba(9,19,17,0.12);
+    }
+    .qr-box canvas, .qr-box img{ display:block; border-radius:3px; }
+    .back-text{ display:flex; flex-direction:column; gap:8px; }
+    .back-main{
+      font-family:'Otterco',sans-serif; font-weight:700;
+      font-size:20px; letter-spacing:-0.01em; line-height:1.2;
+    }
+    .back-div{ width:20px; height:1px; margin:2px 0; }
+    .back-sub{
+      font-family:'Otterco',sans-serif; font-weight:400;
+      font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
+    }
+    .back-url{
+      font-family:'Otterco',sans-serif; font-weight:400;
+      font-size:12px; letter-spacing:0.04em;
+    }
+    /* mint back */
+    .back-mint .back-main{ color:#091311; }
+    .back-mint .back-div{ background:rgba(9,19,17,0.15); }
+    .back-mint .back-sub{ color:rgba(9,19,17,0.38); }
+    .back-mint .back-url{ color:rgba(9,19,17,0.28); }
+    /* dark back */
+    .back-dark .back-main{ color:#f5fbf8; }
+    .back-dark .back-div{ background:rgba(245,251,248,0.18); }
+    .back-dark .back-sub{ color:rgba(245,251,248,0.38); }
+    .back-dark .back-url{ color:rgba(245,251,248,0.25); }
+
+    /* ══════════════════════════════════════
+       FRONT A — Left-aligned · Deep teal name
+    ══════════════════════════════════════ */
+    .fa-top{ position:absolute; top:32px; left:36px; display:flex; flex-direction:column; gap:13px; }
+    .fa-icon{
+      width:48px; height:48px; border-radius:13px;
+      background:rgba(9,19,17,0.08); display:grid; place-items:center;
+    }
+    .fa-brand{ display:flex; flex-direction:column; gap:4px; }
+    .fa-name{
+      font-family:'Otterco',sans-serif; font-weight:700;
+      font-size:38px; letter-spacing:-0.015em; line-height:1;
+      color:#1c3d30;
+    }
+    .fa-sub{
+      font-family:'Otterco',sans-serif; font-weight:400;
+      font-size:10px; letter-spacing:0.24em; text-transform:uppercase;
+      color:rgba(9,19,17,0.36);
+    }
+    .fa-bottom{
+      position:absolute; bottom:28px; left:36px; right:36px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .fa-phone{ font-family:'Otterco',sans-serif; font-weight:400; font-size:12px; letter-spacing:0.04em; color:rgba(9,19,17,0.60); }
+    .fa-url{ font-family:'Otterco',sans-serif; font-weight:400; font-size:11px; letter-spacing:0.04em; color:rgba(9,19,17,0.28); }
+
+    /* ══════════════════════════════════════
+       FRONT B — Left-aligned · Near-black name · Dark card
+    ══════════════════════════════════════ */
+    .fb-top{ position:absolute; top:32px; left:36px; display:flex; flex-direction:column; gap:13px; }
+    .fb-icon{
+      width:48px; height:48px; border-radius:13px;
+      background:rgba(220,238,231,0.10); display:grid; place-items:center;
+    }
+    .fb-brand{ display:flex; flex-direction:column; gap:4px; }
+    .fb-name{
+      font-family:'Otterco',sans-serif; font-weight:700;
+      font-size:38px; letter-spacing:-0.015em; line-height:1;
+      color:#f5fbf8;
+    }
+    .fb-sub{
+      font-family:'Otterco',sans-serif; font-weight:400;
+      font-size:10px; letter-spacing:0.24em; text-transform:uppercase;
+      color:rgba(245,251,248,0.32);
+    }
+    .fb-bottom{
+      position:absolute; bottom:28px; left:36px; right:36px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .fb-phone{ font-family:'Otterco',sans-serif; font-weight:400; font-size:12px; letter-spacing:0.04em; color:rgba(245,251,248,0.58); }
+    .fb-url{ font-family:'Otterco',sans-serif; font-weight:400; font-size:11px; letter-spacing:0.04em; color:rgba(245,251,248,0.25); }
+
+    /* ══════════════════════════════════════
+       FRONT C — Typographic · Giant name · Mint
+    ══════════════════════════════════════ */
+    .fc-topbar{ position:absolute; top:30px; left:36px; right:36px; display:flex; align-items:center; justify-content:space-between; }
+    .fc-icon{
+      width:38px; height:38px; border-radius:10px;
+      background:rgba(9,19,17,0.08); display:grid; place-items:center;
+    }
+    .fc-sub-top{ font-family:'Otterco',sans-serif; font-weight:400; font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:rgba(9,19,17,0.35); }
+    .fc-name{
+      position:absolute; bottom:60px; left:30px; right:30px;
+      font-family:'Otterco',sans-serif; font-weight:700;
+      font-size:72px; letter-spacing:-0.025em; line-height:1;
+      color:#1c3d30;
+      white-space:nowrap;
+    }
+    .fc-bottom{
+      position:absolute; bottom:0; left:0; right:0;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 36px 26px;
+      border-top:1px solid rgba(9,19,17,0.08); padding-top:14px;
+    }
+    .fc-phone{ font-family:'Otterco',sans-serif; font-weight:400; font-size:12px; letter-spacing:0.04em; color:rgba(9,19,17,0.58); }
+    .fc-url{ font-family:'Otterco',sans-serif; font-weight:400; font-size:11px; letter-spacing:0.04em; color:rgba(9,19,17,0.28); }
+
+    /* ══════════════════════════════════════
+       FRONT D — Split · Dark left / Mint right
+    ══════════════════════════════════════ */
+    .fd-left{
+      position:absolute; top:0; left:0; bottom:0; width:48%;
+      background:#091311;
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+    }
+    .fd-icon-l{
+      width:52px; height:52px; border-radius:14px;
+      background:rgba(220,238,231,0.10); display:grid; place-items:center;
+    }
+    .fd-name-l{ font-family:'Otterco',sans-serif; font-weight:700; font-size:22px; letter-spacing:-0.01em; color:#f5fbf8; }
+    .fd-sub-l{ font-family:'Otterco',sans-serif; font-weight:400; font-size:9px; letter-spacing:0.22em; text-transform:uppercase; color:rgba(245,251,248,0.32); margin-top:-4px; }
+    .fd-right{
+      position:absolute; top:0; right:0; bottom:0; width:52%;
+      display:flex; flex-direction:column; justify-content:flex-end; padding:0 32px 28px;
+    }
+    .fd-phone{ font-family:'Otterco',sans-serif; font-weight:400; font-size:12px; letter-spacing:0.04em; color:rgba(9,19,17,0.60); margin-bottom:6px; }
+    .fd-url{ font-family:'Otterco',sans-serif; font-weight:400; font-size:11px; letter-spacing:0.04em; color:rgba(9,19,17,0.28); }
+
+  </style>
+</head>
+<body>
+
+<p class="page-title">PureGlim — Front &amp; Back Pairs</p>
+
+<!-- shared logo path snippet used inline in each card -->
+
+<!-- ══ PAIR 1 ══ Mint front · Mint back ══ -->
+<div class="opt">
+  <div class="opt-header">
+    <span class="opt-num">Pair 1</span>
+    <span class="opt-name">Mint both sides · Left-aligned · Deep teal name</span>
+    <span class="opt-note">Consistent, clean, safe choice</span>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="side-label">Front</p>
+      <div class="card mint">
+        <div class="fa-top">
+          <div class="fa-icon">
+            <svg viewBox="0 0 512 512" width="26" height="26" fill="#3a6b59">
+              <path d="M0 0 C45.859375 13.359375 186.78957272 51.06616592 226 62 C218.72929453 99.02319761 176.1105957 180.44238281 116.06212368 167.05186374 C42.27685547 146.36010742 23.98046875 139.421875 10 136 C3.12736382 135.56863466 -45.72781901 120.76419158 -48 117 C-34.89453125 83.5234375 -6.21826172 16.27587891 0 0 Z" transform="translate(232,332)"/>
+              <path d="M0 0 C64.04214478 17.11862183 125.76953125 49.828125 133.54394531 97.39038086 C112.57292411 105.80893648 52.49804688 89.61279297 -12.32446289 72.20507812 C-80.47782898 54.28379822 -90.8125 48.5625 -68.65826006 4.19760766 C-38.41796875 -5.08984375 0 0 0 0 Z" transform="translate(329.8125,269.4375)"/>
+              <path d="M0 0 C12.84263039 21.2490015 -3.76611328 90.5456543 -52.296875 269.3125 C-104.296875 256.3125 -65.1843214 108.487216 -25.296875 -1.5625 C0 0 0 0 0 0 Z" transform="translate(449.296875,2.6875)"/>
+              <path d="M0 0 C50.51953125 50.87109375 14.91641768 83.82987633 4.8046875 102.9453125 C-54.01953125 60.78125 -32.73574904 35.16551863 0 0 Z" transform="translate(188.01953125,99.21875)"/>
+              <path d="M0 0 C70.22119141 3.2746582 61.87547302 17.78259277 -11.52880859 4.5246582 C0 0 0 0 0 0 Z" transform="translate(95.77880859375,338.725341796875)"/>
+              <path d="M0 0 C69.90234375 4.51757812 65.90234375 17.51757812 -12.09765625 13.51757812 C0 0 0 0 0 0 Z" transform="translate(61.09765625,394.482421875)"/>
+            </svg>
+          </div>
+          <div class="fa-brand">
+            <span class="fa-name">PureGlim</span>
+            <span class="fa-sub">Cleaning</span>
+          </div>
+        </div>
+        <div class="fa-bottom">
+          <div class="srow"><span class="badge badge-teal">SMS</span><span class="fa-phone">0449 963 099</span></div>
+          <span class="fa-url">pureglim.com.au</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <p class="side-label">Back</p>
+      <div class="card mint">
+        <div class="back-inner back-mint">
+          <div class="qr-box"><div id="qr1"></div></div>
+          <div class="back-text">
+            <span class="back-main">Your home,<br>looked after.</span>
+            <div class="back-div"></div>
+            <span class="back-sub">Scan to book a clean</span>
+            <span class="back-url">pureglim.com.au</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAIR 2 ══ Dark front · Dark back ══ -->
+<div class="opt">
+  <div class="opt-header">
+    <span class="opt-num">Pair 2</span>
+    <span class="opt-name">Dark both sides · Left-aligned · White name</span>
+    <span class="opt-note">Premium, sophisticated, high-end feel</span>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="side-label">Front</p>
+      <div class="card dark">
+        <div class="fb-top">
+          <div class="fb-icon">
+            <svg viewBox="0 0 512 512" width="26" height="26" fill="rgba(220,238,231,0.75)">
+              <path d="M0 0 C45.859375 13.359375 186.78957272 51.06616592 226 62 C218.72929453 99.02319761 176.1105957 180.44238281 116.06212368 167.05186374 C42.27685547 146.36010742 23.98046875 139.421875 10 136 C3.12736382 135.56863466 -45.72781901 120.76419158 -48 117 C-34.89453125 83.5234375 -6.21826172 16.27587891 0 0 Z" transform="translate(232,332)"/>
+              <path d="M0 0 C64.04214478 17.11862183 125.76953125 49.828125 133.54394531 97.39038086 C112.57292411 105.80893648 52.49804688 89.61279297 -12.32446289 72.20507812 C-80.47782898 54.28379822 -90.8125 48.5625 -68.65826006 4.19760766 C-38.41796875 -5.08984375 0 0 0 0 Z" transform="translate(329.8125,269.4375)"/>
+              <path d="M0 0 C12.84263039 21.2490015 -3.76611328 90.5456543 -52.296875 269.3125 C-104.296875 256.3125 -65.1843214 108.487216 -25.296875 -1.5625 C0 0 0 0 0 0 Z" transform="translate(449.296875,2.6875)"/>
+              <path d="M0 0 C50.51953125 50.87109375 14.91641768 83.82987633 4.8046875 102.9453125 C-54.01953125 60.78125 -32.73574904 35.16551863 0 0 Z" transform="translate(188.01953125,99.21875)"/>
+              <path d="M0 0 C70.22119141 3.2746582 61.87547302 17.78259277 -11.52880859 4.5246582 C0 0 0 0 0 0 Z" transform="translate(95.77880859375,338.725341796875)"/>
+              <path d="M0 0 C69.90234375 4.51757812 65.90234375 17.51757812 -12.09765625 13.51757812 C0 0 0 0 0 0 Z" transform="translate(61.09765625,394.482421875)"/>
+            </svg>
+          </div>
+          <div class="fb-brand">
+            <span class="fb-name">PureGlim</span>
+            <span class="fb-sub">Cleaning</span>
+          </div>
+        </div>
+        <div class="fb-bottom">
+          <div class="srow"><span class="badge badge-mint">SMS</span><span class="fb-phone">0449 963 099</span></div>
+          <span class="fb-url">pureglim.com.au</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <p class="side-label">Back</p>
+      <div class="card dark">
+        <div class="back-inner back-dark">
+          <div class="qr-box"><div id="qr2"></div></div>
+          <div class="back-text">
+            <span class="back-main">Your home,<br>looked after.</span>
+            <div class="back-div"></div>
+            <span class="back-sub">Scan to book a clean</span>
+            <span class="back-url">pureglim.com.au</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAIR 3 ══ Typographic mint front · Mint back ══ -->
+<div class="opt">
+  <div class="opt-header">
+    <span class="opt-num">Pair 3</span>
+    <span class="opt-name">Mint both sides · Giant name · Editorial</span>
+    <span class="opt-note">Most memorable, brand name dominates</span>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="side-label">Front</p>
+      <div class="card mint">
+        <div class="fc-topbar">
+          <div class="fc-icon">
+            <svg viewBox="0 0 512 512" width="20" height="20" fill="#3a6b59">
+              <path d="M0 0 C45.859375 13.359375 186.78957272 51.06616592 226 62 C218.72929453 99.02319761 176.1105957 180.44238281 116.06212368 167.05186374 C42.27685547 146.36010742 10 136 -45.72781901 120.76419158 C-48 117 -22.81733757 60.25056939 0 0 Z" transform="translate(232,332)"/>
+              <path d="M0 0 C125.76953125 49.828125 133.54394531 97.39038086 52.49804688 89.61279297 C-12.32446289 72.20507812 -90.8125 48.5625 -68.65826006 4.19760766 C-38.41796875 -5.08984375 0 0 0 0 Z" transform="translate(329.8125,269.4375)"/>
+              <path d="M0 0 C12.84263039 21.2490015 -52.296875 269.3125 -104.296875 256.3125 C-65.1843214 108.487216 -25.296875 -1.5625 0 0 Z" transform="translate(449.296875,2.6875)"/>
+              <path d="M0 0 C50.51953125 50.87109375 4.8046875 102.9453125 -54.01953125 60.78125 C-14.87890625 10.89453125 0 0 0 0 Z" transform="translate(188.01953125,99.21875)"/>
+              <path d="M0 0 C70.22119141 3.2746582 -11.52880859 4.5246582 0 0 Z" transform="translate(95.77880859375,338.725341796875)"/>
+              <path d="M0 0 C69.90234375 4.51757812 -12.09765625 13.51757812 0 0 Z" transform="translate(61.09765625,394.482421875)"/>
+            </svg>
+          </div>
+          <span class="fc-sub-top">Cleaning</span>
+        </div>
+        <span class="fc-name">PureGlim</span>
+        <div class="fc-bottom">
+          <div class="srow"><span class="badge badge-teal">SMS</span><span class="fc-phone">0449 963 099</span></div>
+          <span class="fc-url">pureglim.com.au</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <p class="side-label">Back</p>
+      <div class="card mint">
+        <div class="back-inner back-mint">
+          <div class="qr-box"><div id="qr3"></div></div>
+          <div class="back-text">
+            <span class="back-main">Your home,<br>looked after.</span>
+            <div class="back-div"></div>
+            <span class="back-sub">Scan to book a clean</span>
+            <span class="back-url">pureglim.com.au</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAIR 4 ══ Split front · Mint back ══ -->
+<div class="opt">
+  <div class="opt-header">
+    <span class="opt-num">Pair 4</span>
+    <span class="opt-name">Split front (dark + mint) · Mint back</span>
+    <span class="opt-note">Two-tone contrast — unique, bold structure</span>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="side-label">Front</p>
+      <div class="card mint">
+        <div class="fd-left">
+          <div class="fd-icon-l">
+            <svg viewBox="0 0 512 512" width="28" height="28" fill="rgba(220,238,231,0.75)">
+              <path d="M0 0 C45.859375 13.359375 186.78957272 51.06616592 226 62 C218.72929453 99.02319761 176.1105957 180.44238281 116.06212368 167.05186374 C42.27685547 146.36010742 10 136 -45.72781901 120.76419158 C-48 117 -22.81733757 60.25056939 0 0 Z" transform="translate(232,332)"/>
+              <path d="M0 0 C125.76953125 49.828125 130.1875 106.5625 52.49804688 89.61279297 C-80.47782898 54.28379822 -90.8125 48.5625 -68.65826006 4.19760766 C-38.41796875 -5.08984375 0 0 0 0 Z" transform="translate(329.8125,269.4375)"/>
+              <path d="M0 0 C12.84263039 21.2490015 -52.296875 269.3125 -104.296875 256.3125 C-37.76912111 6.23265382 -25.296875 -1.5625 0 0 Z" transform="translate(449.296875,2.6875)"/>
+              <path d="M0 0 C50.51953125 50.87109375 4.8046875 102.9453125 -54.01953125 60.78125 C-14.87890625 10.89453125 0 0 0 0 Z" transform="translate(188.01953125,99.21875)"/>
+              <path d="M0 0 C70.22119141 3.2746582 -11.52880859 4.5246582 0 0 Z" transform="translate(95.77880859375,338.725341796875)"/>
+              <path d="M0 0 C69.90234375 4.51757812 -12.09765625 13.51757812 0 0 Z" transform="translate(61.09765625,394.482421875)"/>
+            </svg>
+          </div>
+          <span class="fd-name-l">PureGlim</span>
+          <span class="fd-sub-l">Cleaning</span>
+        </div>
+        <div class="fd-right">
+          <div class="srow" style="margin-bottom:6px;"><span class="badge badge-teal">SMS</span><span class="fd-phone">0449 963 099</span></div>
+          <span class="fd-url">pureglim.com.au</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <p class="side-label">Back</p>
+      <div class="card mint">
+        <div class="back-inner back-mint">
+          <div class="qr-box"><div id="qr4"></div></div>
+          <div class="back-text">
+            <span class="back-main">Your home,<br>looked after.</span>
+            <div class="back-div"></div>
+            <span class="back-sub">Scan to book a clean</span>
+            <span class="back-url">pureglim.com.au</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const cfg = { width:80, height:80, colorDark:"#091311", colorLight:"#ffffff", correctLevel:QRCode.CorrectLevel.M };
+  ['qr1','qr2','qr3','qr4'].forEach(id => new QRCode(document.getElementById(id), { ...cfg, text:"https://pureglim.com.au" }));
+</script>
+</body>
+</html>
