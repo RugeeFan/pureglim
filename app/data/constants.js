@@ -65,6 +65,28 @@ export const frequencyMultiplier = {
   "Every 4 weeks": 1.08,
 };
 
+export const quoteBaseRanges = {
+  regular: {
+    "1 Bedroom":   { low: 130, high: 165 },
+    "2 Bedrooms":  { low: 165, high: 200 },
+    "3 Bedrooms":  { low: 200, high: 245 },
+    "4+ Bedrooms": { low: 245, high: 295 },
+  },
+  deep: {
+    "1 Bedroom":   { low: 295, high: 375 },
+    "2 Bedrooms":  { low: 380, high: 475 },
+    "3 Bedrooms":  { low: 460, high: 575 },
+    "4+ Bedrooms": { low: 550, high: 690 },
+  },
+};
+
+export const oneTimeRanges = {
+  "1 Bedroom":   { low: 155, high: 195 },
+  "2 Bedrooms":  { low: 195, high: 240 },
+  "3 Bedrooms":  { low: 235, high: 295 },
+  "4+ Bedrooms": { low: 290, high: 360 },
+};
+
 export const services = [
   {
     id: "regular",

@@ -1,9 +1,10 @@
+import VideoShell from "../../components/VideoShell";
 import Link from "next/link";
 
 export const metadata = {
-  title: "House Cleaning — Eastern Suburbs Sydney",
+  title: "House Cleaning — Sydney Eastern Suburbs | PureGlim",
   description:
-    "Professional home and end of lease cleaning in Bondi, Double Bay, Paddington, Vaucluse, Coogee, Woollahra and surrounding Eastern Suburbs. Regular from $150, bond clean from $340.",
+    "Get an estimate online. Home and end of lease cleaning in Bondi, Double Bay, Paddington, Vaucluse, Coogee, and Woollahra. Done with care and consistency.",
 };
 
 const serviceSchema = {
@@ -25,7 +26,7 @@ const serviceSchema = {
     "@type": "Offer",
     priceSpecification: {
       "@type": "PriceSpecification",
-      minPrice: "120",
+      minPrice: "150",
       priceCurrency: "AUD",
     },
   },
@@ -34,187 +35,133 @@ const serviceSchema = {
 
 export default function EasternSuburbsPage() {
   return (
-    <main style={styles.page}>
-      <div style={styles.container}>
-        <Link href="/" style={styles.back}>← PureGlim</Link>
-
-        <p style={styles.eyebrow}>Sydney Eastern Suburbs</p>
-        <h1 style={styles.heading}>House & Apartment Cleaning —{" "}Sydney's Eastern Suburbs</h1>
-
-        <p style={styles.intro}>
-          The Eastern Suburbs has some of Sydney's most sought-after apartments, terraces, and
-          family homes — and one of its highest concentrations of renters. Whether you're after
-          reliable fortnightly upkeep in a Bondi apartment, or a thorough end of lease clean
-          before a Randwick inspection, we take care of it without fuss.
-        </p>
-
-        <section style={styles.section}>
-          <h2 style={styles.subheading}>Areas we cover</h2>
-          <p style={styles.body}>
-            We clean regularly across Bondi, Bondi Junction, Bronte, Coogee, Tamarama, Double Bay,
-            Rose Bay, Vaucluse, Bellevue Hill, Woollahra, Paddington, Darlinghurst, Randwick,
-            Clovelly, and the surrounding Eastern Suburbs. Not sure if we cover your street?{" "}
-            <a href="tel:+61449963099" style={styles.link}>Give us a call</a> or send a message.
-          </p>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.subheading}>Regular home cleaning — from $150</h2>
-          <p style={styles.body}>
-            Our regular cleaning service covers everything that needs to stay on top of: kitchen
-            surfaces and sink, bathroom wipe-down, vacuuming, mopping, dusting, and general
-            tidying. Weekly cleans suit busy households and families; fortnightly is the most
-            popular option. Monthly works well as a supplement to your own routine.
-          </p>
-          <p style={styles.body}>
-            Fortnightly cleans start at $150 for a 1-bedroom home. Weekly bookings receive a 10%
-            discount. One-off cleans are also available, priced slightly higher than recurring visits.
-          </p>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.subheading}>End of lease cleaning for Eastern Suburbs rentals — from $340</h2>
-          <p style={styles.body}>
-            With so many rental properties in the Eastern Suburbs, bond cleaning is one of the
-            most common reasons people contact us. We clean to inspection standard — inside
-            cupboards, skirting boards, appliance exteriors, bathroom mould treatment, and all the
-            corners that regular cleaning skips. Add-ons include carpet cleaning ($70), oven ($65),
-            fridge ($35), interior windows ($45), and more.
-          </p>
-          <p style={styles.body}>
-            If anything within our scope is raised at the inspection, we come back and sort it at
-            no charge.
-          </p>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.subheading}>Get an instant estimate</h2>
-          <p style={styles.body}>
-            Select your home size and service on our website and get a price immediately — no
-            phone call needed to get a number.
-          </p>
-          <div style={styles.ctas}>
-            <Link href="/" style={styles.ctaPrimary}>Get a quote</Link>
-            <a href="tel:+61449963099" style={styles.ctaSecondary}>+61 449 963 099</a>
-          </div>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.subheading}>Have questions?</h2>
-          <p style={styles.body}>
-            Check our <Link href="/faq" style={styles.link}>cleaning FAQ</Link> for answers on
-            pricing, what's included, end of lease process, and more. Or{" "}
-            <a href="mailto:pureglimsydney@gmail.com" style={styles.link}>email us directly</a>.
-          </p>
-          <p style={{ ...styles.body, marginTop: "12px" }}>
-            We also serve{" "}
-            <Link href="/locations/northern-suburbs" style={styles.link}>
-              Sydney's Northern Suburbs
-            </Link>
-            .
-          </p>
-        </section>
+    <VideoShell>
+      <div className="rp-header">
+        <Link href="/" className="rp-back">← PureGlim</Link>
+        <Link href="/?booking=true" className="rp-top-cta">Book a clean →</Link>
       </div>
+
+      <p className="rp-eyebrow">Sydney Eastern Suburbs</p>
+      <h1 className="rp-h1">House &amp; apartment cleaning — Eastern Suburbs</h1>
+      <p className="rp-intro">
+        The Eastern Suburbs has some of Sydney's most sought-after apartments, terraces, and
+        family homes — and one of its highest concentrations of renters. Whether you need
+        reliable fortnightly upkeep in a Bondi apartment or a thorough end of lease clean
+        before a Randwick inspection, we take care of it without fuss.
+      </p>
+
+      <section className="rp-section">
+        <h2 className="rp-h2">Why Eastern Suburbs properties choose PureGlim</h2>
+        <p className="rp-body">
+          We've cleaned hundreds of homes from Bondi to Bellevue Hill. Eastern Suburbs clients
+          tend to value two things above all: consistency and discretion. Our cleaners arrive
+          when expected, work efficiently, and leave the kind of result that needs no follow-up
+          call. We're fully insured, and every job is backed by our free re-clean guarantee.
+        </p>
+        <p className="rp-body">
+          Whether it's a compact studio on Hall Street or a four-bedroom terrace in Paddington,
+          we quote accurately and deliver consistently.
+        </p>
+      </section>
+
+      <section className="rp-section">
+        <h2 className="rp-h2">Regular home cleaning</h2>
+        <p className="rp-body">
+          Our regular service covers kitchen surfaces and sink, bathroom wipe-down, vacuuming,
+          mopping, dusting, and general tidying. Fortnightly is the most popular frequency;
+          weekly bookings receive a 10% discount.
+        </p>
+        <div className="rp-price-grid">
+          <div className="rp-price-card"><strong>$150</strong><span>1 bedroom</span></div>
+          <div className="rp-price-card"><strong>$185</strong><span>2 bedrooms</span></div>
+          <div className="rp-price-card"><strong>$225</strong><span>3 bedrooms</span></div>
+          <div className="rp-price-card"><strong>$275</strong><span>4 bedrooms+</span></div>
+        </div>
+      </section>
+
+      <section className="rp-section">
+        <h2 className="rp-h2">End of lease cleaning</h2>
+        <p className="rp-body">
+          Bond cleaning in the Eastern Suburbs requires attention to detail — agents inspect
+          closely. We clean to inspection standard: inside cupboards, skirting boards, appliance
+          exteriors, bathroom mould treatment, and all the spots regular cleaning skips.
+        </p>
+        <p className="rp-body">
+          Add-ons available: carpet cleaning ($70), oven ($65), fridge ($35), interior windows ($45).
+          If anything within our scope is raised at inspection, we return at no charge.
+        </p>
+        <div className="rp-price-grid">
+          <div className="rp-price-card"><strong>$340</strong><span>1 bedroom</span></div>
+          <div className="rp-price-card"><strong>$430</strong><span>2 bedrooms</span></div>
+          <div className="rp-price-card"><strong>$520</strong><span>3 bedrooms</span></div>
+        </div>
+      </section>
+
+      <section className="rp-section">
+        <h2 className="rp-h2">Areas we cover</h2>
+        <p className="rp-body">
+          We clean regularly across the Eastern Suburbs. Common areas include:
+        </p>
+        <div className="rp-area-tags">
+          {["Bondi", "Bondi Beach", "Bondi Junction", "Bronte", "Tamarama", "Coogee",
+            "Clovelly", "Randwick", "Rose Bay", "Bellevue Hill", "Double Bay",
+            "Paddington", "Vaucluse", "Watsons Bay"].map(s => (
+            <span key={s} className="rp-area-tag">{s}</span>
+          ))}
+        </div>
+        <p className="rp-body" style={{ marginTop: "16px" }}>
+          Not sure if we reach your street?{" "}
+          <a href="tel:+61449963099" className="rp-link">Call us</a> or{" "}
+          <a href="mailto:pureglimsydney@gmail.com" className="rp-link">send a message</a>.
+        </p>
+      </section>
+
+      <section className="rp-section">
+        <h2 className="rp-h2">Common questions — Eastern Suburbs</h2>
+
+        <div className="rp-faq-item">
+          <h3>Do I need to be home during the clean?</h3>
+          <p>No — most clients provide entry instructions and aren't present. We're fully insured and operate with a consistent team so you always know who's coming.</p>
+        </div>
+        <div className="rp-faq-item">
+          <h3>How far in advance do I need to book an end of lease clean?</h3>
+          <p>We recommend at least 3–5 days notice for end of lease, especially in peak rental periods (Jan–Feb, Jun–Jul). Express bookings are sometimes possible — call to check availability.</p>
+        </div>
+        <div className="rp-faq-item">
+          <h3>Do you bring your own products and equipment?</h3>
+          <p>Yes, all products and equipment are supplied. If you have preferences (fragrance-free, specific brands), let us know when booking and we'll accommodate where possible.</p>
+        </div>
+        <div className="rp-faq-item">
+          <h3>What's included in a regular clean vs end of lease?</h3>
+          <p>Regular cleans keep surfaces and high-traffic areas consistently clean. End of lease is a deeper, one-off clean covering inside cupboards, appliances, and all rental inspection points. See our full <Link href="/faq" className="rp-link">FAQ</Link> for a complete breakdown.</p>
+        </div>
+      </section>
+
+      <hr className="rp-divider" />
+
+      <section className="rp-section">
+        <p className="rp-h2">Get an instant quote</p>
+        <p className="rp-body">
+          Select your home size and service online — no phone call needed to get a number.
+        </p>
+        <div className="rp-cta-group">
+          <Link href="/?booking=true" className="rp-cta-primary">Book a clean →</Link>
+          <a href="tel:+61449963099" className="rp-cta-secondary">+61 449 963 099</a>
+        </div>
+        <p className="rp-body" style={{ marginTop: "20px" }}>
+          Also serving:{" "}
+          <Link href="/locations/northern-suburbs" className="rp-link">Lower North Shore</Link>
+          {" · "}
+          <Link href="/services/regular-cleaning" className="rp-link">Regular cleaning</Link>
+          {" · "}
+          <Link href="/services/end-of-lease" className="rp-link">End of lease</Link>
+        </p>
+      </section>
 
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
       />
-    </main>
+    </VideoShell>
   );
 }
-
-const styles = {
-  page: {
-    minHeight: "100dvh",
-    background: "#091311",
-    padding: "clamp(40px, 6vw, 80px) clamp(20px, 5vw, 60px)",
-    fontFamily: "'Avenir Next', 'Segoe UI', sans-serif",
-  },
-  container: {
-    maxWidth: "640px",
-    margin: "0 auto",
-  },
-  back: {
-    display: "inline-block",
-    marginBottom: "48px",
-    fontSize: "0.8rem",
-    letterSpacing: "0.06em",
-    color: "rgba(245, 251, 248, 0.40)",
-    textDecoration: "none",
-  },
-  eyebrow: {
-    fontSize: "0.72rem",
-    letterSpacing: "0.1em",
-    textTransform: "uppercase",
-    color: "rgba(245, 251, 248, 0.35)",
-    marginBottom: "12px",
-  },
-  heading: {
-    fontFamily: "var(--font-otterco, 'Avenir Next', sans-serif)",
-    fontWeight: 700,
-    fontSize: "clamp(1.6rem, 4vw, 2.2rem)",
-    letterSpacing: "-0.025em",
-    color: "rgba(245, 251, 248, 0.92)",
-    marginBottom: "24px",
-    lineHeight: 1.2,
-  },
-  intro: {
-    fontSize: "0.95rem",
-    lineHeight: "1.8",
-    color: "rgba(245, 251, 248, 0.65)",
-    letterSpacing: "0.01em",
-    marginBottom: "48px",
-  },
-  section: {
-    marginBottom: "44px",
-  },
-  subheading: {
-    fontFamily: "var(--font-otterco, 'Avenir Next', sans-serif)",
-    fontWeight: 700,
-    fontSize: "0.88rem",
-    letterSpacing: "0.04em",
-    color: "rgba(245, 251, 248, 0.72)",
-    marginBottom: "12px",
-  },
-  body: {
-    fontSize: "0.875rem",
-    lineHeight: "1.75",
-    color: "rgba(245, 251, 248, 0.52)",
-    letterSpacing: "0.01em",
-    marginBottom: "12px",
-  },
-  link: {
-    color: "rgba(245, 251, 248, 0.65)",
-    textDecoration: "underline",
-    textUnderlineOffset: "3px",
-  },
-  ctas: {
-    display: "flex",
-    gap: "16px",
-    flexWrap: "wrap",
-    marginTop: "20px",
-  },
-  ctaPrimary: {
-    display: "inline-block",
-    padding: "11px 22px",
-    background: "rgba(245, 251, 248, 0.92)",
-    color: "#091311",
-    borderRadius: "6px",
-    fontSize: "0.82rem",
-    fontWeight: 700,
-    letterSpacing: "0.04em",
-    textDecoration: "none",
-    fontFamily: "var(--font-otterco, 'Avenir Next', sans-serif)",
-  },
-  ctaSecondary: {
-    display: "inline-block",
-    padding: "11px 22px",
-    border: "1px solid rgba(245, 251, 248, 0.18)",
-    color: "rgba(245, 251, 248, 0.65)",
-    borderRadius: "6px",
-    fontSize: "0.82rem",
-    letterSpacing: "0.04em",
-    textDecoration: "none",
-  },
-};

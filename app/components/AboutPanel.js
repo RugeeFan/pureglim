@@ -38,6 +38,22 @@ export default function AboutPanel({ isOpen }) {
             </span>
           </article>
         </div>
+
+        <div className="about-areas">
+          <span className="about-areas-eyebrow">Where we work</span>
+          <p>
+            We serve homes and workplaces across Sydney&apos;s eastern suburbs and
+            lower north shore — from Bondi and Paddington through to Mosman,
+            Neutral Bay, and the North Sydney corridor. Unsure if we cover your
+            area? Just get in touch.
+          </p>
+          <div className="about-area-tags">
+            <span>Eastern Suburbs</span>
+            <span>Lower North Shore</span>
+            <span>Inner East Sydney</span>
+            <span>North Shore Corridor</span>
+          </div>
+        </div>
       </div>
     </section>
   );

@@ -51,14 +51,16 @@ export async function POST(request) {
       referenceId,
     });
   } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Something went wrong while saving your request.";
+
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Something went wrong while saving your request.",
+        error: message,
       },
-      { status: 500 },
+      { status: /discount code/i.test(message) ? 400 : 500 },
     );
   }
 }

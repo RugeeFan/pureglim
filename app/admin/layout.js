@@ -19,6 +19,9 @@ export default function AdminLayout({ children }) {
             <Link href="/admin/enquiries" className="admin-nav-link">
               Enquiries
             </Link>
+            <Link href="/admin/referrers" className="admin-nav-link">
+              Referrers
+            </Link>
             <Link href="/admin/settings" className="admin-nav-link">
               Settings
             </Link>

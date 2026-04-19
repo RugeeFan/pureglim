@@ -21,23 +21,11 @@ const otterco = localFont({
 export const metadata = {
   metadataBase: new URL("https://pureglim.com.au"),
   title: {
-    default: "PureGlim | House Cleaning — Sydney Eastern & Northern Suburbs",
-    template: "%s | PureGlim Sydney",
+    default: "PureGlim | Reliable House Cleaning in Sydney",
+    template: "%s | PureGlim",
   },
   description:
-    "Professional home and office cleaning in Sydney's Eastern and Northern Suburbs. Regular cleaning from $150, end of lease from $340. Serving Bondi, Double Bay, Vaucluse, Mosman, Neutral Bay, North Sydney and more.",
-  keywords: [
-    "cleaning service Sydney",
-    "house cleaner Eastern Suburbs",
-    "end of lease cleaning Bondi",
-    "house cleaner Mosman",
-    "bond cleaning Sydney",
-    "residential cleaning Sydney",
-    "cleaning service Northern Suburbs Sydney",
-    "end of lease cleaner Double Bay",
-    "house cleaning Paddington",
-    "cleaner Neutral Bay",
-  ],
+    "Get an estimate online. Reliable home and office cleaning across Sydney — done with care, detail, and consistency. Regular cleaning, end of lease, and commercial.",
   authors: [{ name: "PureGlim" }],
   creator: "PureGlim",
   publisher: "PureGlim",
@@ -46,24 +34,24 @@ export const metadata = {
     type: "website",
     url: "https://pureglim.com.au",
     siteName: "PureGlim",
-    title: "PureGlim | House Cleaning — Sydney Eastern & Northern Suburbs",
+    title: "PureGlim | Reliable House Cleaning in Sydney",
     description:
-      "Professional home and office cleaning in Sydney's Eastern and Northern Suburbs. Regular cleaning from $150, end of lease from $340.",
+      "Get an estimate online. Home and office cleaning across Sydney done with care and consistency. Regular cleaning, end of lease, and commercial.",
     locale: "en_AU",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "PureGlim — Professional Cleaning Services, Sydney",
+        alt: "PureGlim — Reliable Cleaning Services, Sydney",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "PureGlim | House Cleaning — Sydney",
+    title: "PureGlim — Reliable House Cleaning in Sydney",
     description:
-      "Professional home and office cleaning in Sydney's Eastern and Northern Suburbs. From $150.",
+      "Get an estimate online. Home and office cleaning across Sydney done with care and consistency.",
     images: ["/og-image.jpg"],
   },
   robots: {
@@ -84,7 +72,7 @@ const localBusinessSchema = {
   "@id": "https://pureglim.com.au/#business",
   name: "PureGlim",
   description:
-    "Professional residential and commercial cleaning services in Sydney's Eastern and Northern Suburbs.",
+    "Reliable residential and commercial cleaning services across Sydney — regular cleaning, end of lease, and workplace care done with detail and consistency.",
   url: "https://pureglim.com.au",
   telephone: "+61449963099",
   email: "pureglimsydney@gmail.com",

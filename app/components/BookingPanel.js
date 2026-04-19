@@ -25,9 +25,13 @@ import {
   frequencyMultiplier,
   frequencyOptions,
   oneTimePrices,
+  oneTimeRanges,
   quoteBasePrices,
+  quoteBaseRanges,
   services,
 } from "../data/constants";
+
+const roundTo5 = (n) => Math.round(n / 5) * 5;
 
 function getServiceById(serviceId) {
   return services.find((service) => service.id === serviceId) ?? services[0];
@@ -55,6 +59,7 @@ function getInitialFormState() {
     email: "",
     address: "",
     notes: "",
+    discountCode: "",
     preferredDate: (() => {
       const n = new Date();
       return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-${String(n.getDate()).padStart(2, "0")}`;
@@ -82,6 +87,17 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
   const stepTimerRef = useRef(null);
   const bookingBodyRef = useRef(null);
   const [form, setForm] = useState(getInitialFormState);
+  const [discountState, setDiscountState] = useState({
+    status: "idle",
+    code: "",
+    partnerName: "",
+    discountAmount: 0,
+    originalAmount: null,
+    finalAmount: null,
+    message: "",
+  });
+  const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const selectedService = selectedServiceId ? getServiceById(selectedServiceId) : null;
   const steps = getSteps(selectedServiceId);
@@ -101,6 +117,15 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
     setSubmitError("");
     setSubmissionResult(null);
     setForm(getInitialFormState());
+    setDiscountState({
+      status: "idle",
+      code: "",
+      partnerName: "",
+      discountAmount: 0,
+      originalAmount: null,
+      finalAmount: null,
+      message: "",
+    });
   }, [initialServiceId, isOpen]);
 
   const quote = useMemo(() => {
@@ -148,8 +173,74 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
     };
   }, [form, selectedServiceId]);
 
+  const pricingSummary = useMemo(() => {
+    if (!quote) return null;
+
+    const discountAmount =
+      discountState.status === "valid" ? discountState.discountAmount : 0;
+    const originalAmount = quote.amount;
+    const finalAmount = Math.max(originalAmount - discountAmount, 0);
+
+    return {
+      originalAmount,
+      discountAmount,
+      finalAmount,
+      code: discountState.status === "valid" ? discountState.code : "",
+      partnerName:
+        discountState.status === "valid" ? discountState.partnerName : "",
+    };
+  }, [discountState, quote]);
+
+  const quoteRange = useMemo(() => {
+    if (!selectedServiceId || selectedServiceId === "commercial" || !form.bedrooms || !form.bathrooms) return null;
+
+    if (selectedServiceId === "regular") {
+      const extra = bathroomAddOn.regular[form.bathrooms];
+      if (form.frequency === "One-time") {
+        const r = oneTimeRanges[form.bedrooms];
+        return { low: r.low + extra, high: r.high + extra, isOneTime: true };
+      }
+      const r = quoteBaseRanges.regular[form.bedrooms];
+      const mul = frequencyMultiplier[form.frequency];
+      const fr = oneTimeRanges[form.bedrooms];
+      return {
+        low: roundTo5((r.low + extra) * mul),
+        high: roundTo5((r.high + extra) * mul),
+        isOneTime: false,
+        firstClean: { low: fr.low + extra, high: fr.high + extra },
+      };
+    }
+
+    const r = quoteBaseRanges.deep[form.bedrooms];
+    const extra = bathroomAddOn.deep[form.bathrooms];
+    const addOnsTotal = form.addOns.reduce((sum, id) => {
+      return sum + (deepCleaningAddOns.find((a) => a.id === id)?.price ?? 0);
+    }, 0);
+    return { low: r.low + extra + addOnsTotal, high: r.high + extra + addOnsTotal };
+  }, [form, selectedServiceId]);
+
   function updateField(name, value) {
     setForm((current) => ({ ...current, [name]: value }));
+  }
+
+  function updateDiscountCode(value) {
+    setForm((current) => ({ ...current, discountCode: value }));
+    setDiscountState((current) => {
+      const normalized = value.trim().toUpperCase().replace(/\s+/g, "");
+      if (current.status === "valid" && current.code === normalized) {
+        return current;
+      }
+
+      return {
+        status: "idle",
+        code: "",
+        partnerName: "",
+        discountAmount: 0,
+        originalAmount: null,
+        finalAmount: null,
+        message: "",
+      };
+    });
   }
 
   function toggleAddOn(addOnId) {
@@ -165,8 +256,87 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
     setSelectedServiceId(serviceId);
     setShowValidation(false);
     setSubmitError("");
+    setDiscountState({
+      status: "idle",
+      code: "",
+      partnerName: "",
+      discountAmount: 0,
+      originalAmount: null,
+      finalAmount: null,
+      message: "",
+    });
+    setForm((current) => ({ ...current, discountCode: "" }));
     setStepIndex(jumpToDetails ? 1 : 0);
     setDisplayStepIndex(jumpToDetails ? 1 : 0);
+  }
+
+  async function applyDiscountCode() {
+    const code = form.discountCode.trim();
+    if (!code || !quote) {
+      setDiscountState({
+        status: "invalid",
+        code: "",
+        partnerName: "",
+        discountAmount: 0,
+        originalAmount: null,
+        finalAmount: null,
+        message: "Enter a referral code to apply a discount.",
+      });
+      return false;
+    }
+
+    setIsApplyingDiscount(true);
+    setDiscountState((current) => ({
+      ...current,
+      status: "checking",
+      message: "",
+    }));
+
+    try {
+      const response = await fetch("/api/referral/code/validate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code,
+          amount: quote.amount,
+        }),
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.valid) {
+        throw new Error(result.error || "That referral code doesn't exist. Please double-check it.");
+      }
+
+      setForm((current) => ({ ...current, discountCode: result.code }));
+      setDiscountState({
+        status: "valid",
+        code: result.code,
+        partnerName: result.referrerName,
+        discountAmount: result.discountAmount,
+        originalAmount: result.originalAmount,
+        finalAmount: result.finalAmount,
+        message: `✓ ${result.code} applied — $${result.discountAmount} off your first clean.`,
+      });
+      return true;
+    } catch (error) {
+      setDiscountState({
+        status: "invalid",
+        code: "",
+        partnerName: "",
+        discountAmount: 0,
+        originalAmount: null,
+        finalAmount: null,
+        message:
+          error instanceof Error
+            ? error.message
+            : "That referral code doesn't exist. Please double-check it.",
+      });
+      return false;
+    } finally {
+      setIsApplyingDiscount(false);
+    }
   }
 
   function canContinue() {
@@ -210,7 +380,16 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
     if (currentStep === "details") {
       return selectedServiceId === "commercial" ? "Request a site visit" : "See my estimate";
     }
-    if (currentStep === "quote") return selectedService?.quote.nextLabel ?? "Next";
+    if (currentStep === "quote") {
+      if (
+        selectedServiceId !== "commercial" &&
+        form.discountCode.trim() &&
+        discountState.status !== "valid"
+      ) {
+        return isApplyingDiscount ? "Checking…" : "Verify referral code";
+      }
+      return selectedService?.quote.nextLabel ?? "Next";
+    }
     if (currentStep === "contact") return selectedService?.quote.nextLabel ?? "Review";
     if (currentStep === "review") {
       return isSubmitting ? "Sending…" : "Send request";
@@ -240,6 +419,10 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
       siteType: selectedService.id === "commercial" ? form.siteType.trim() : "",
       siteSchedule: selectedService.id === "commercial" ? form.siteSchedule.trim() : "",
       notes: form.notes.trim(),
+      discountCode:
+        selectedService.id !== "commercial" && discountState.status === "valid"
+          ? discountState.code
+          : "",
       preferredDate: form.preferredDate || "",
       preferredTime: form.preferredTime || "",
       estimatedPrice: quote?.amount ?? null,
@@ -284,6 +467,16 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
 
     if (currentStep === "review") {
       await submitRequest();
+      return;
+    }
+
+    if (
+      currentStep === "quote" &&
+      selectedServiceId !== "commercial" &&
+      form.discountCode.trim() &&
+      discountState.status !== "valid"
+    ) {
+      await applyDiscountCode();
       return;
     }
 
@@ -594,13 +787,6 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                         </div>
                       </div>
 
-                      {quote && !quote.isOneTime && (
-                        <div className="quote-group quote-group-wide first-clean-notice">
-                          <p>
-                            Your first visit will be <strong>${quote.firstCleanPrice}</strong> — a little more to work through than usual, since we&apos;re starting fresh. Once we&apos;re into the rhythm, each visit is <strong>${quote.amount}</strong>.
-                          </p>
-                        </div>
-                      )}
                     </div>
                   ) : (
                     <div className="quote-grid quote-grid-deep">
@@ -669,22 +855,68 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                     </div>
                   )}
 
-                  {quote && (
+                  {quoteRange && (
                     <div className="quote-live-estimate">
-                      <div className="quote-live-price">
-                        <span>Estimated price</span>
-                        <AnimatedPrice amount={quote.amount} />
+                      <div className="quote-estimate-layout">
+                        <div className="quote-estimate-left">
+                          <span className="quote-estimate-label">Estimate</span>
+                          <div className="quote-estimate-range">
+                            <AnimatedPrice amount={quoteRange.low} />
+                            <span className="quote-estimate-sep">–</span>
+                            <AnimatedPrice amount={quoteRange.high} />
+                          </div>
+                          {pricingSummary?.discountAmount ? (
+                            <p className="quote-live-detail">Referral -{`$${pricingSummary.discountAmount}`} · first clean only</p>
+                          ) : null}
+                          {quote?.addOnsTotal > 0 && (
+                            <p className="quote-live-detail">Includes add-ons ${quote.addOnsTotal}</p>
+                          )}
+                        </div>
+                        <div className="quote-estimate-right">
+                          {selectedServiceId === "regular" && !quoteRange.isOneTime ? (
+                            <p className="quote-estimate-note">
+                              Your first visit will be{" "}
+                              <AnimatedPrice amount={pricingSummary?.discountAmount ? Math.max(0, quoteRange.firstClean.low - pricingSummary.discountAmount) : quoteRange.firstClean.low} />–<AnimatedPrice amount={pricingSummary?.discountAmount ? Math.max(0, quoteRange.firstClean.high - pricingSummary.discountAmount) : quoteRange.firstClean.high} />{" "}
+                              {pricingSummary?.discountAmount
+                                ? `(after ${discountState.code}) `
+                                : "— a little more to work through than usual, since we\u2019re starting fresh. "}
+                              Once we&apos;re into the rhythm, each visit is{" "}
+                              <AnimatedPrice amount={quoteRange.low} />–<AnimatedPrice amount={quoteRange.high} />.{" "}
+                              Estimate based on your selections.{" "}
+                              <button type="button" className="quote-details-link" onClick={() => setShowDetailsModal(true)}>
+                                View details
+                              </button>
+                            </p>
+                          ) : (
+                            <p className="quote-live-disclaimer">
+                              Estimate based on your selections.{" "}
+                              <button type="button" className="quote-details-link" onClick={() => setShowDetailsModal(true)}>
+                                View details
+                              </button>
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      {quote.addOnsTotal > 0 && (
-                        <p className="quote-live-detail">
-                          Base ${quote.base} + add-ons ${quote.addOnsTotal}
-                        </p>
-                      )}
-                      <p className="quote-live-disclaimer">
-                        Based on your selections. We&apos;ll confirm the exact price before your visit.
-                      </p>
                     </div>
                   )}
+
+                  {selectedService.id !== "commercial" && (
+                    <div className="quote-referral-section">
+                      <input
+                        name="discountCode"
+                        onChange={(event) => updateDiscountCode(event.target.value)}
+                        placeholder="Referral code (optional)"
+                        type="text"
+                        value={form.discountCode}
+                      />
+                      {discountState.message ? (
+                        <p className={`discount-code-feedback ${discountState.status === "valid" ? "is-valid" : "is-error"}`}>
+                          {discountState.message}
+                        </p>
+                      ) : null}
+                    </div>
+                  )}
+
                 </>
               )}
 
@@ -822,9 +1054,10 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                     <div className="review-card">
                       <span className="review-section-label">Service</span>
                       <span className="review-section-value">{selectedService.title}</span>
-                      {quote && (
+                      {quoteRange && (
                         <span className="review-price">
-                          <AnimatedPrice amount={quote.amount} />
+                          ${quoteRange.low}–${quoteRange.high}
+                          {pricingSummary?.discountAmount ? ` (referral -$${pricingSummary.discountAmount}, first clean)` : ""}
                         </span>
                       )}
                       {selectedService.id === "commercial" && (
@@ -857,6 +1090,17 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                         </>
                       )}
                     </div>
+
+                    {pricingSummary?.discountAmount ? (
+                      <div className="review-card">
+                        <span className="review-section-label">Discount</span>
+                        <span className="review-section-value">{pricingSummary.code}</span>
+                        <span className="review-section-value">-${pricingSummary.discountAmount}</span>
+                        <span className="review-section-value">
+                          Final {`$${pricingSummary.finalAmount}`}
+                        </span>
+                      </div>
+                    ) : null}
 
                     <div className="review-card">
                       <span className="review-section-label">Your details</span>
@@ -914,8 +1158,10 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
 
                   <div className="result-summary-card">
                     <div className="result-summary-top">
-                      {selectedService.id !== "commercial" && quote && (
-                        <strong className="result-summary-price">${quote.amount}</strong>
+                      {selectedService.id !== "commercial" && quoteRange && (
+                        <strong className="result-summary-price">
+                          ${quoteRange.low}–${quoteRange.high}
+                        </strong>
                       )}
                       {selectedService.id === "commercial" && (
                         <strong className="result-summary-price result-summary-price-sm">On-site quote</strong>
@@ -931,8 +1177,14 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                             .filter((item) => form.addOns.includes(item.id))
                             .map((item) => <span key={item.id}>{item.label}</span>)
                         }
+                        {pricingSummary?.code ? <span>{pricingSummary.code}</span> : null}
                       </div>
                     </div>
+                    {pricingSummary?.discountAmount ? (
+                      <div className="result-summary-meta">
+                        <span>Referral -{`$${pricingSummary.discountAmount}`} · first clean only</span>
+                      </div>
+                    ) : null}
                     <div className="result-chip-row result-chip-row-muted">
                       <span>{form.name}</span>
                       <span>{form.phone}</span>
@@ -990,19 +1242,36 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
 
                 <button
                   className="primary-button"
-                  disabled={isStepTransitioning || isSubmitting}
+                  disabled={isStepTransitioning || isSubmitting || isApplyingDiscount}
                   onClick={handleNext}
                   type="button"
                 >
-                  {isSubmitting ? <LoaderCircle className="spin" size={18} /> : null}
+                  {(isSubmitting || isApplyingDiscount) ? <LoaderCircle className="spin" size={18} /> : null}
                   {getPrimaryButtonLabel()}
-                  {!isSubmitting ? <ArrowRight size={18} /> : null}
+                  {!(isSubmitting || isApplyingDiscount) ? <ArrowRight size={18} /> : null}
                 </button>
               </div>
             ) : null}
           </div>
         </div>
       </div>
+      {showDetailsModal && (
+        <div className="quote-modal-overlay" onClick={() => setShowDetailsModal(false)}>
+          <div className="quote-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="quote-modal-close" onClick={() => setShowDetailsModal(false)} type="button">✕</button>
+            <h3>About your estimate</h3>
+            <ul>
+              <li>This is an estimate based on your selections. Your final price is confirmed before work begins.</li>
+              {selectedServiceId === "regular" && !quoteRange?.isOneTime && (
+                <li>Your first clean is priced a little higher — once we&apos;re into the routine, ongoing visits stay within the ongoing estimate.</li>
+              )}
+              <li>A referral discount applies to your first clean only.</li>
+              <li>Visit length is typically 2–4 hours depending on size and condition.</li>
+              <li>We work as a small team, so timing may vary slightly with travel.</li>
+            </ul>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

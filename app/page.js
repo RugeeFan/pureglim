@@ -6,7 +6,10 @@ import { navItems } from "./data/constants";
 import AboutPanel from "./components/AboutPanel";
 import BookingPanel from "./components/BookingPanel";
 import ContactPanel from "./components/ContactPanel";
+import FaqPanel from "./components/FaqPanel";
+import PrivacyPanel from "./components/PrivacyPanel";
 import ServicesPanel from "./components/ServicesPanel";
+import TermsPanel from "./components/TermsPanel";
 
 export default function Home() {
   const [activePanel, setActivePanel] = useState(null);
@@ -20,6 +23,9 @@ export default function Home() {
   const isServicesOpen = activePanel === "services";
   const isAboutOpen = activePanel === "about";
   const isContactOpen = activePanel === "contact";
+  const isPrivacyOpen = activePanel === "privacy";
+  const isTermsOpen = activePanel === "terms";
+  const isFaqOpen = activePanel === "faq";
   const currentNav =
     activePanel === "services" || activePanel === "about" || activePanel === "contact"
       ? activePanel
@@ -132,8 +138,8 @@ export default function Home() {
     const onReady = () => setVideoReady(true);
     video.addEventListener("canplaythrough", onReady, { once: true });
 
-    // Safety fallback: show site after 5s regardless
-    const timer = setTimeout(() => setVideoReady(true), 5000);
+    // Safety fallback: show site after 2s regardless
+    const timer = setTimeout(() => setVideoReady(true), 2000);
 
     return () => {
       video.removeEventListener("canplaythrough", onReady);
@@ -245,6 +251,9 @@ export default function Home() {
           ${isServicesOpen ? "services-active" : ""}
           ${isAboutOpen ? "about-active" : ""}
           ${isContactOpen ? "contact-active" : ""}
+          ${isPrivacyOpen ? "privacy-active" : ""}
+          ${isTermsOpen ? "terms-active" : ""}
+          ${isFaqOpen ? "faq-active" : ""}
           ${closingPanel ? `panel-closing panel-closing-${closingPanel}` : ""}
         `}
       >
@@ -296,8 +305,8 @@ export default function Home() {
             <div className="hero-copy">
               <h1>Your home, looked after.</h1>
               <p>
-                We handle the cleaning, quietly and consistently, so it never
-                becomes something you have to manage.
+                We handle the cleaning carefully and consistently — so your home
+                stays in good shape without it ever becoming something to manage.
               </p>
               <div className="hero-actions-wrap">
                 <div className="hero-actions">
@@ -318,13 +327,16 @@ export default function Home() {
                 <Star size={16} fill="currentColor" />
                 <span>4.9 rating</span>
               </div>
-              <p>Trusted by apartments, family homes, and small workspaces that want one less thing to think about.</p>
+              <p>Trusted by apartments, family homes, and workplaces across Sydney — by people who want one less thing to think about.</p>
             </aside>
           </div>
 
           <ServicesPanel isOpen={isServicesOpen} onSelectService={startBooking} />
           <AboutPanel isOpen={isAboutOpen} />
           <ContactPanel isOpen={isContactOpen} />
+          <PrivacyPanel isOpen={isPrivacyOpen} onClose={closeActivePanel} />
+          <TermsPanel isOpen={isTermsOpen} onClose={closeActivePanel} />
+          <FaqPanel isOpen={isFaqOpen} onClose={closeActivePanel} />
           <BookingPanel
             isOpen={isBookingOpen}
             initialServiceId={initialBookingServiceId}
@@ -336,9 +348,11 @@ export default function Home() {
         <div className="page-meta" aria-hidden="true">
           <span>© 2026 PureGlim</span>
           <span className="page-meta-dot">·</span>
-          <a href="/privacy">Privacy</a>
+          <button type="button" onClick={() => openPanel("faq")}>FAQ</button>
           <span className="page-meta-dot">·</span>
-          <a href="/terms">Terms</a>
+          <button type="button" onClick={() => openPanel("privacy")}>Privacy</button>
+          <span className="page-meta-dot">·</span>
+          <button type="button" onClick={() => openPanel("terms")}>Terms</button>
           <span className="page-meta-dot">·</span>
           <a href="https://rugee.vercel.app" target="_blank" rel="noopener noreferrer">Built by Rugee</a>
         </div>

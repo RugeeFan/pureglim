@@ -15,8 +15,9 @@ enum ServiceType {
 
 enum BookingStatus {
   NEW
-  CONTACTED
-  QUOTED
+  CONFIRMED
+  COMPLETE
+  COMMISSION_PAID
 }
 
 model Setting {
@@ -25,25 +26,54 @@ model Setting {
   updatedAt DateTime @updatedAt
 }
 
+model Referrer {
+  id                    String         @id @default(cuid())
+  fullName              String?
+  phone                 String         @unique
+  referralCode          String?        @unique
+  referralCodeCreatedAt DateTime?
+  lastLoginAt           DateTime?
+  isActive              Boolean        @default(true)
+  bankAccountName       String?
+  bsb                   String?
+  bankAccountNumber     String?
+  bankDetailsUpdatedAt  DateTime?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  referrals             QuoteRequest[]
+}
+
 model QuoteRequest {
-  id            String        @id @default(cuid())
-  serviceType   ServiceType
-  customerName  String
-  phone         String
-  email         String
-  address       String
-  bedrooms      String?
-  bathrooms     String?
-  frequency     String?
-  companyName   String?
-  siteType      String?
-  siteSchedule  String?
-  addOns        Json?
-  estimatedPrice Int?
-  notes         String?
-  preferredDate String?
-  preferredTime String?
-  status        BookingStatus @default(NEW)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id                   String         @id @default(cuid())
+  serviceType          ServiceType
+  customerName         String
+  phone                String
+  email                String
+  address              String
+  bedrooms             String?
+  bathrooms            String?
+  frequency            String?
+  companyName          String?
+  siteType             String?
+  siteSchedule         String?
+  addOns               Json?
+  estimatedPrice       Int?
+  originalAmount       Int?
+  discountAmount       Int            @default(0)
+  finalAmount          Int?
+  commissionBaseAmount Int?
+  commissionAmount     Int?
+  referralCode         String?
+  referrerId           String?
+  notes                String?
+  preferredDate        String?
+  preferredTime        String?
+  status               BookingStatus  @default(NEW)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  referrer             Referrer?      @relation(fields: [referrerId], references: [id], onDelete: SetNull)
+
+  @@index([referrerId, createdAt])
+  @@index([referralCode])
+  @@index([status, createdAt])
 }

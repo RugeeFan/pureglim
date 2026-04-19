@@ -1,15 +1,16 @@
+import VideoShell from "../../components/VideoShell";
 import Link from "next/link";
 
 export const metadata = {
-  title: "House Cleaning — Northern Suburbs Sydney",
+  title: "House Cleaning — Sydney Lower North Shore | PureGlim",
   description:
-    "Reliable home and office cleaning in Mosman, Neutral Bay, Cremorne, North Sydney, Chatswood, Lane Cove and surrounding Northern Suburbs. Regular from $150, bond clean from $340.",
+    "Get an estimate online. Home and office cleaning in Mosman, Neutral Bay, North Sydney, Chatswood, and Lane Cove. Reliable, detail-focused service.",
 };
 
 const serviceSchema = {
   "@context": "https://schema.org",
   "@type": "Service",
-  name: "House & Office Cleaning — Northern Suburbs Sydney",
+  name: "House & Office Cleaning — Lower North Shore Sydney",
   provider: { "@id": "https://pureglim.com.au/#business" },
   areaServed: {
     "@type": "GeoCircle",
@@ -25,7 +26,7 @@ const serviceSchema = {
     "@type": "Offer",
     priceSpecification: {
       "@type": "PriceSpecification",
-      minPrice: "120",
+      minPrice: "150",
       priceCurrency: "AUD",
     },
   },
@@ -34,201 +35,150 @@ const serviceSchema = {
 
 export default function NorthernSuburbsPage() {
   return (
-    <main style={styles.page}>
-      <div style={styles.container}>
-        <Link href="/" style={styles.back}>← PureGlim</Link>
-
-        <p style={styles.eyebrow}>Sydney Northern Suburbs</p>
-        <h1 style={styles.heading}>House & Office Cleaning —{" "}Sydney's Northern Suburbs</h1>
-
-        <p style={styles.intro}>
-          From the prestige harbourside homes of Mosman and Neutral Bay to the offices and
-          studios of North Sydney and Chatswood, the Northern Suburbs spans a wide mix of
-          residential and commercial needs. We work across all of it — homes, apartments,
-          and workspaces — scheduled around how you actually live and work.
-        </p>
-
-        <section style={styles.section}>
-          <h2 style={styles.subheading}>Areas we cover</h2>
-          <p style={styles.body}>
-            We service Mosman, Neutral Bay, Cremorne, Kirribilli, McMahons Point, North Sydney,
-            Crows Nest, St Leonards, Chatswood, Lane Cove, Willoughby, Northbridge, and surrounding
-            North Shore suburbs. Not sure if we cover your area?{" "}
-            <a href="tel:+61449963099" style={styles.link}>Call or message us</a>.
-          </p>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.subheading}>Regular home cleaning — from $150</h2>
-          <p style={styles.body}>
-            Whether it's a compact Neutral Bay apartment or a larger family home in Lane Cove or
-            Willoughby, our regular cleaning covers everything: kitchen surfaces, bathrooms,
-            vacuuming, mopping, dusting, and general tidying throughout. We work to a consistent
-            standard on every visit so there's nothing to manage between cleans.
-          </p>
-          <p style={styles.body}>
-            Fortnightly is the most popular frequency. Weekly suits busier households, and comes
-            with a 10% discount over the standard rate.
-          </p>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.subheading}>End of lease cleaning for North Shore rentals — from $340</h2>
-          <p style={styles.body}>
-            High-density apartments in Neutral Bay, Cremorne, and Kirribilli mean a steady flow
-            of tenancy turnovers. Our end of lease service covers inside cupboards, skirting boards,
-            appliance exteriors, bathroom mould treatment, tracks, corners, and all the detail work
-            that matters at inspection. Optional add-ons for carpets ($70), oven ($65), fridge ($35),
-            and interior windows ($45).
-          </p>
-          <p style={styles.body}>
-            If anything within our scope is raised at inspection, we return and fix it at no charge.
-          </p>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.subheading}>Office & commercial cleaning — North Sydney and Chatswood</h2>
-          <p style={styles.body}>
-            North Sydney and Chatswood are two of Sydney's largest commercial precincts outside
-            the CBD. We provide regular office and workplace cleaning for smaller businesses,
-            studios, retail spaces, and shared workplaces across both areas. Plans are built around
-            your hours — before open, after close, or during low-traffic windows — with no template
-            scope forced on a space it doesn't suit.
-          </p>
-          <p style={styles.body}>
-            Commercial enquiries are handled individually. Contact us to arrange a brief site
-            walkthrough and we'll put together a plan from there.
-          </p>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.subheading}>Get an instant estimate</h2>
-          <p style={styles.body}>
-            Use our online calculator to get a residential price immediately — no call needed.
-            Commercial enquiries are handled by message or phone.
-          </p>
-          <div style={styles.ctas}>
-            <Link href="/" style={styles.ctaPrimary}>Get a quote</Link>
-            <a href="tel:+61449963099" style={styles.ctaSecondary}>+61 449 963 099</a>
-          </div>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.subheading}>Have questions?</h2>
-          <p style={styles.body}>
-            Our <Link href="/faq" style={styles.link}>FAQ page</Link> covers pricing, what's
-            included, the end of lease process, and more. Or{" "}
-            <a href="mailto:pureglimsydney@gmail.com" style={styles.link}>send us an email</a>.
-          </p>
-          <p style={{ ...styles.body, marginTop: "12px" }}>
-            We also serve{" "}
-            <Link href="/locations/eastern-suburbs" style={styles.link}>
-              Sydney's Eastern Suburbs
-            </Link>
-            .
-          </p>
-        </section>
+    <VideoShell>
+      <div className="rp-header">
+        <Link href="/" className="rp-back">← PureGlim</Link>
+        <Link href="/?booking=true" className="rp-top-cta">Book a clean →</Link>
       </div>
+
+      <p className="rp-eyebrow">Sydney Lower North Shore</p>
+      <h1 className="rp-h1">House &amp; office cleaning — Lower North Shore</h1>
+      <p className="rp-intro">
+        From the prestige harbourside homes of Mosman and Neutral Bay to the offices and studios
+        of North Sydney and Chatswood, the Lower North Shore spans a wide mix of residential and
+        commercial needs. We work across all of it — scheduled around how you actually live and work.
+      </p>
+
+      <section className="rp-section">
+        <h2 className="rp-h2">Why Lower North Shore properties choose PureGlim</h2>
+        <p className="rp-body">
+          The Lower North Shore has high expectations — properties are well-kept, agents are
+          thorough, and clients notice when a job is done properly. We've built our reputation
+          here on consistency: the same standard every visit, fully insured, with a free
+          re-clean guarantee if anything falls short.
+        </p>
+        <p className="rp-body">
+          Whether it's a Mosman family home, a Neutral Bay apartment, or a North Sydney office,
+          we quote accurately and turn up on time.
+        </p>
+      </section>
+
+      <section className="rp-section">
+        <h2 className="rp-h2">Regular home cleaning</h2>
+        <p className="rp-body">
+          Covers kitchen surfaces and sink, bathroom wipe-down, vacuuming, mopping, dusting, and
+          general tidying throughout. Fortnightly is the most popular frequency; weekly bookings
+          receive a 10% discount.
+        </p>
+        <div className="rp-price-grid">
+          <div className="rp-price-card"><strong>$150</strong><span>1 bedroom</span></div>
+          <div className="rp-price-card"><strong>$185</strong><span>2 bedrooms</span></div>
+          <div className="rp-price-card"><strong>$225</strong><span>3 bedrooms</span></div>
+          <div className="rp-price-card"><strong>$275</strong><span>4 bedrooms+</span></div>
+        </div>
+      </section>
+
+      <section className="rp-section">
+        <h2 className="rp-h2">End of lease cleaning</h2>
+        <p className="rp-body">
+          High-density apartments in Neutral Bay, Cremorne, and Kirribilli mean a steady flow of
+          tenancy turnovers. Our end of lease service covers inside cupboards, skirting boards,
+          appliance exteriors, bathroom mould treatment, tracks, corners, and all the detail work
+          that matters at inspection.
+        </p>
+        <p className="rp-body">
+          Add-ons: carpet cleaning ($70), oven ($65), fridge ($35), interior windows ($45).
+          If anything within our scope is raised at inspection, we return at no charge.
+        </p>
+        <div className="rp-price-grid">
+          <div className="rp-price-card"><strong>$340</strong><span>1 bedroom</span></div>
+          <div className="rp-price-card"><strong>$430</strong><span>2 bedrooms</span></div>
+          <div className="rp-price-card"><strong>$520</strong><span>3 bedrooms</span></div>
+        </div>
+      </section>
+
+      <section className="rp-section">
+        <h2 className="rp-h2">Office &amp; commercial cleaning — North Sydney and Chatswood</h2>
+        <p className="rp-body">
+          North Sydney and Chatswood are two of Sydney's largest commercial precincts outside the
+          CBD. We provide regular office and workplace cleaning for smaller businesses, studios,
+          retail spaces, and shared workplaces across both areas.
+        </p>
+        <p className="rp-body">
+          Schedules are built around your hours — before open, after close, or during low-traffic
+          windows — with no template scope forced on a space it doesn't suit. Commercial enquiries
+          are handled individually; contact us to arrange a brief site walkthrough.
+        </p>
+        <div className="rp-cta-group" style={{ marginTop: "20px" }}>
+          <a href="mailto:pureglimsydney@gmail.com" className="rp-cta-primary">Enquire about commercial →</a>
+          <a href="tel:+61449963099" className="rp-cta-secondary">+61 449 963 099</a>
+        </div>
+      </section>
+
+      <section className="rp-section">
+        <h2 className="rp-h2">Areas we cover</h2>
+        <p className="rp-body">We clean regularly across the Lower North Shore, including:</p>
+        <div className="rp-area-tags">
+          {["Mosman", "Neutral Bay", "Cremorne", "Kirribilli", "McMahons Point",
+            "North Sydney", "Crows Nest", "St Leonards", "Chatswood",
+            "Lane Cove", "Willoughby", "Northbridge"].map(s => (
+            <span key={s} className="rp-area-tag">{s}</span>
+          ))}
+        </div>
+        <p className="rp-body" style={{ marginTop: "16px" }}>
+          Not listed?{" "}
+          <a href="tel:+61449963099" className="rp-link">Call us</a> — we likely cover your area.
+        </p>
+      </section>
+
+      <section className="rp-section">
+        <h2 className="rp-h2">Common questions — Lower North Shore</h2>
+
+        <div className="rp-faq-item">
+          <h3>Do you service strata apartments on the Lower North Shore?</h3>
+          <p>Yes — we regularly clean strata apartments in Neutral Bay, Cremorne, and Kirribilli. Access arrangements (key lockboxes, building entry codes) are handled at booking.</p>
+        </div>
+        <div className="rp-faq-item">
+          <h3>Can I get a quote for a commercial space in North Sydney?</h3>
+          <p>Yes. Commercial quotes are handled individually rather than through the online calculator. Email or call us to arrange a walkthrough, and we'll put together a scope and schedule that fits your space.</p>
+        </div>
+        <div className="rp-faq-item">
+          <h3>How quickly can you book an end of lease clean?</h3>
+          <p>We typically need 3–5 days notice. Urgent bookings are sometimes available — call to check. We aim to accommodate end of lease timing wherever possible given the bond implications.</p>
+        </div>
+        <div className="rp-faq-item">
+          <h3>What's your re-clean policy?</h3>
+          <p>If anything within our agreed scope doesn't meet standard — whether for a regular or end of lease job — we return and fix it at no additional charge. No arguments, no conditions. See our <Link href="/faq" className="rp-link">FAQ</Link> for more detail.</p>
+        </div>
+      </section>
+
+      <hr className="rp-divider" />
+
+      <section className="rp-section">
+        <p className="rp-h2">Get an instant quote</p>
+        <p className="rp-body">
+          Residential prices online in seconds. Commercial and large-scale enquiries by phone or email.
+        </p>
+        <div className="rp-cta-group">
+          <Link href="/?booking=true" className="rp-cta-primary">Book a clean →</Link>
+          <a href="tel:+61449963099" className="rp-cta-secondary">+61 449 963 099</a>
+        </div>
+        <p className="rp-body" style={{ marginTop: "20px" }}>
+          Also serving:{" "}
+          <Link href="/locations/eastern-suburbs" className="rp-link">Eastern Suburbs</Link>
+          {" · "}
+          <Link href="/services/regular-cleaning" className="rp-link">Regular cleaning</Link>
+          {" · "}
+          <Link href="/services/end-of-lease" className="rp-link">End of lease</Link>
+          {" · "}
+          <Link href="/services/commercial" className="rp-link">Commercial cleaning</Link>
+        </p>
+      </section>
 
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
       />
-    </main>
+    </VideoShell>
   );
 }
-
-const styles = {
-  page: {
-    minHeight: "100dvh",
-    background: "#091311",
-    padding: "clamp(40px, 6vw, 80px) clamp(20px, 5vw, 60px)",
-    fontFamily: "'Avenir Next', 'Segoe UI', sans-serif",
-  },
-  container: {
-    maxWidth: "640px",
-    margin: "0 auto",
-  },
-  back: {
-    display: "inline-block",
-    marginBottom: "48px",
-    fontSize: "0.8rem",
-    letterSpacing: "0.06em",
-    color: "rgba(245, 251, 248, 0.40)",
-    textDecoration: "none",
-  },
-  eyebrow: {
-    fontSize: "0.72rem",
-    letterSpacing: "0.1em",
-    textTransform: "uppercase",
-    color: "rgba(245, 251, 248, 0.35)",
-    marginBottom: "12px",
-  },
-  heading: {
-    fontFamily: "var(--font-otterco, 'Avenir Next', sans-serif)",
-    fontWeight: 700,
-    fontSize: "clamp(1.6rem, 4vw, 2.2rem)",
-    letterSpacing: "-0.025em",
-    color: "rgba(245, 251, 248, 0.92)",
-    marginBottom: "24px",
-    lineHeight: 1.2,
-  },
-  intro: {
-    fontSize: "0.95rem",
-    lineHeight: "1.8",
-    color: "rgba(245, 251, 248, 0.65)",
-    letterSpacing: "0.01em",
-    marginBottom: "48px",
-  },
-  section: {
-    marginBottom: "44px",
-  },
-  subheading: {
-    fontFamily: "var(--font-otterco, 'Avenir Next', sans-serif)",
-    fontWeight: 700,
-    fontSize: "0.88rem",
-    letterSpacing: "0.04em",
-    color: "rgba(245, 251, 248, 0.72)",
-    marginBottom: "12px",
-  },
-  body: {
-    fontSize: "0.875rem",
-    lineHeight: "1.75",
-    color: "rgba(245, 251, 248, 0.52)",
-    letterSpacing: "0.01em",
-    marginBottom: "12px",
-  },
-  link: {
-    color: "rgba(245, 251, 248, 0.65)",
-    textDecoration: "underline",
-    textUnderlineOffset: "3px",
-  },
-  ctas: {
-    display: "flex",
-    gap: "16px",
-    flexWrap: "wrap",
-    marginTop: "20px",
-  },
-  ctaPrimary: {
-    display: "inline-block",
-    padding: "11px 22px",
-    background: "rgba(245, 251, 248, 0.92)",
-    color: "#091311",
-    borderRadius: "6px",
-    fontSize: "0.82rem",
-    fontWeight: 700,
-    letterSpacing: "0.04em",
-    textDecoration: "none",
-    fontFamily: "var(--font-otterco, 'Avenir Next', sans-serif)",
-  },
-  ctaSecondary: {
-    display: "inline-block",
-    padding: "11px 22px",
-    border: "1px solid rgba(245, 251, 248, 0.18)",
-    color: "rgba(245, 251, 248, 0.65)",
-    borderRadius: "6px",
-    fontSize: "0.82rem",
-    letterSpacing: "0.04em",
-    textDecoration: "none",
-  },
-};
