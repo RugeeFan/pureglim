@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "../../../lib/auth/session";
 import { getSettings, updateSettings, SETTING_KEYS } from "../../../lib/services/settings";
 import { sendTestEmail } from "../../../lib/mail/sendQuoteRequestNotification";
+import ChangePasswordForm from "./ChangePasswordForm";
 
 export const metadata = { title: "Settings — PureGlim Admin" };
 
@@ -183,6 +184,8 @@ export default async function SettingsPage({ searchParams }) {
           </button>
         </div>
       </form>
+
+      <ChangePasswordForm />
 
       <section className="admin-detail-section admin-settings-test-section">
         <h2 className="admin-detail-section-title">Test Email</h2>

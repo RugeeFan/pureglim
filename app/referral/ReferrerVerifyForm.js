@@ -1,13 +1,31 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+const RESEND_COOLDOWN = 60;
 
 export default function ReferrerVerifyForm({ phone = "your mobile" }) {
   const router = useRouter();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resendSecondsLeft, setResendSecondsLeft] = useState(RESEND_COOLDOWN);
+  const [resendStatus, setResendStatus] = useState("");
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      setResendSecondsLeft((s) => {
+        if (s <= 1) {
+          clearInterval(timerRef.current);
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, []);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -36,6 +54,47 @@ export default function ReferrerVerifyForm({ phone = "your mobile" }) {
       );
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleResend() {
+    setResendStatus("Sending…");
+    setError("");
+
+    try {
+      const response = await fetch("/api/referral/auth/resend", {
+        method: "POST",
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        const wait = result.secondsLeft;
+        setResendStatus("");
+        setError(result.error || "Couldn't resend the code.");
+        if (wait) setResendSecondsLeft(wait);
+        return;
+      }
+
+      setResendSecondsLeft(RESEND_COOLDOWN);
+      setResendStatus("Code sent!");
+      if (result.devCode) {
+        setResendStatus(`Dev code: ${result.devCode}`);
+      }
+
+      clearInterval(timerRef.current);
+      timerRef.current = setInterval(() => {
+        setResendSecondsLeft((s) => {
+          if (s <= 1) {
+            clearInterval(timerRef.current);
+            setResendStatus("");
+            return 0;
+          }
+          return s - 1;
+        });
+      }, 1000);
+    } catch {
+      setResendStatus("");
+      setError("Couldn't resend the code. Please try again.");
     }
   }
 
@@ -73,6 +132,15 @@ export default function ReferrerVerifyForm({ phone = "your mobile" }) {
       </form>
 
       <div className="referral-auth-links">
+        {resendStatus ? (
+          <span className="referral-resend-status">{resendStatus}</span>
+        ) : resendSecondsLeft > 0 ? (
+          <span className="referral-resend-countdown">Resend in {resendSecondsLeft}s</span>
+        ) : (
+          <button type="button" className="referral-resend-btn" onClick={handleResend}>
+            Resend code
+          </button>
+        )}
         <a href="/referral/login">Start again</a>
       </div>
     </div>

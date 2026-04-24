@@ -6,11 +6,18 @@ import { useState } from "react";
 export default function ReferrerAuthForm({ mode }) {
   const router = useRouter();
   const isRegister = mode === "register";
+
+  const [loginMethod, setLoginMethod] = useState("password");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [devCode, setDevCode] = useState("");
+
+  const usePasswordLogin = !isRegister && loginMethod === "password";
+  const useSmsLogin = isRegister || loginMethod === "sms";
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -18,7 +25,36 @@ export default function ReferrerAuthForm({ mode }) {
     setError("");
     setDevCode("");
 
+    if (isRegister && password !== confirmPassword) {
+      setError("Passwords do not match.");
+      setLoading(false);
+      return;
+    }
+
+    if (isRegister && password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      setLoading(false);
+      return;
+    }
+
     try {
+      if (usePasswordLogin) {
+        const response = await fetch("/api/referral/auth/login-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone, password }),
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || "Login failed.");
+        }
+
+        router.push("/referral/dashboard");
+        router.refresh();
+        return;
+      }
+
       const response = await fetch("/api/referral/auth/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -26,6 +62,7 @@ export default function ReferrerAuthForm({ mode }) {
           mode,
           fullName,
           phone,
+          ...(isRegister ? { password } : {}),
         }),
       });
       const result = await response.json();
@@ -45,7 +82,7 @@ export default function ReferrerAuthForm({ mode }) {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "We couldn't send the verification code.",
+          : "Something went wrong. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -59,10 +96,29 @@ export default function ReferrerAuthForm({ mode }) {
         <h1>{isRegister ? "Join the referral program." : "Log in to your referral dashboard."}</h1>
         <p>
           {isRegister
-            ? "Register with your mobile number. Once verified, you'll get your personal referral code to share."
-            : "Log in with the same phone number you registered with. We'll send you a fresh SMS code."}
+            ? "Register with your mobile number and set a password. Once verified, you'll get your personal referral code to share."
+            : "Log in with your phone number and password."}
         </p>
       </div>
+
+      {!isRegister && (
+        <div className="referral-login-tabs">
+          <button
+            type="button"
+            className={`referral-login-tab${loginMethod === "password" ? " is-active" : ""}`}
+            onClick={() => { setLoginMethod("password"); setError(""); }}
+          >
+            Password
+          </button>
+          <button
+            type="button"
+            className={`referral-login-tab${loginMethod === "sms" ? " is-active" : ""}`}
+            onClick={() => { setLoginMethod("sms"); setError(""); }}
+          >
+            SMS verification
+          </button>
+        </div>
+      )}
 
       <form className="referral-auth-form" onSubmit={handleSubmit}>
         {isRegister ? (
@@ -87,6 +143,32 @@ export default function ReferrerAuthForm({ mode }) {
           />
         </label>
 
+        {(usePasswordLogin || isRegister) && (
+          <label className="referral-form-group">
+            <span>Password</span>
+            <input
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder={isRegister ? "Min. 8 characters" : "Your password"}
+              type="password"
+              autoComplete={isRegister ? "new-password" : "current-password"}
+            />
+          </label>
+        )}
+
+        {isRegister && (
+          <label className="referral-form-group">
+            <span>Confirm password</span>
+            <input
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              placeholder="Repeat password"
+              type="password"
+              autoComplete="new-password"
+            />
+          </label>
+        )}
+
         {error ? <p className="referral-form-error">{error}</p> : null}
         {devCode ? (
           <p className="referral-form-hint">
@@ -95,7 +177,9 @@ export default function ReferrerAuthForm({ mode }) {
         ) : null}
 
         <button className="referral-primary-btn" disabled={loading} type="submit">
-          {loading ? "Sending…" : "Send verification code"}
+          {loading
+            ? (usePasswordLogin ? "Logging in…" : "Sending…")
+            : (usePasswordLogin ? "Log in" : isRegister ? "Send verification code" : "Send SMS code")}
         </button>
       </form>
 

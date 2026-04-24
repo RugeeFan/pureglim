@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { signReferrerPendingJwt, REFERRER_PENDING_COOKIE_NAME } from "../../../../../lib/auth/referrerSession";
 import { getReferrerByPhone, normalizePhoneNumber } from "../../../../../lib/services/referrers";
+import { checkSmsRateLimit, setSmsRateLimit } from "../../../../../lib/services/smsRateLimit";
 import { startPhoneVerification } from "../../../../../lib/services/twilioVerify";
+import { hashPassword } from "../../../../../lib/utils/password";
 import { referrerAuthStartSchema } from "../../../../../lib/validation/referrerAuth";
 
 function buildCookieOptions(maxAgeSeconds) {
@@ -37,6 +39,14 @@ export async function POST(request) {
       );
     }
 
+    const rateLimit = await checkSmsRateLimit(phone);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: `Please wait ${rateLimit.secondsLeft}s before requesting another code.`, secondsLeft: rateLimit.secondsLeft },
+        { status: 429 },
+      );
+    }
+
     const existingReferrer = await getReferrerByPhone(phone);
 
     if (parsed.data.mode === "register" && existingReferrer) {
@@ -53,11 +63,25 @@ export async function POST(request) {
       );
     }
 
+    if (parsed.data.mode === "register" && !parsed.data.password) {
+      return NextResponse.json(
+        { error: "A password is required to register." },
+        { status: 400 },
+      );
+    }
+
+    const passwordHash = parsed.data.mode === "register" && parsed.data.password
+      ? await hashPassword(parsed.data.password)
+      : undefined;
+
     const verification = await startPhoneVerification(phone);
+    await setSmsRateLimit(phone);
+
     const pendingToken = await signReferrerPendingJwt({
       phone,
       fullName: parsed.data.fullName,
       mode: parsed.data.mode,
+      ...(passwordHash ? { passwordHash } : {}),
     });
 
     const response = NextResponse.json({

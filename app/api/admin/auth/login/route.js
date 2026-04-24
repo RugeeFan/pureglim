@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { signJwt, COOKIE_NAME } from "../../../../../lib/auth/session";
+import { verifyAdminPassword } from "../../../../../lib/auth/adminPassword";
 
 export async function POST(request) {
   try {
@@ -7,14 +8,16 @@ export async function POST(request) {
     const { username, password } = body ?? {};
 
     const validUsername = process.env.ADMIN_USERNAME;
-    const validPassword = process.env.ADMIN_PASSWORD;
 
-    if (
-      !validUsername ||
-      !validPassword ||
-      username !== validUsername ||
-      password !== validPassword
-    ) {
+    if (!validUsername || username !== validUsername) {
+      return NextResponse.json(
+        { error: "Invalid username or password." },
+        { status: 401 },
+      );
+    }
+
+    const passwordOk = await verifyAdminPassword(password);
+    if (!passwordOk) {
       return NextResponse.json(
         { error: "Invalid username or password." },
         { status: 401 },
@@ -29,7 +32,7 @@ export async function POST(request) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24, // 24 hours
+      maxAge: 60 * 60 * 24,
     });
 
     return response;

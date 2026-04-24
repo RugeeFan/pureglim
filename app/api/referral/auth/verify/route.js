@@ -58,6 +58,7 @@ export async function POST(request) {
       fullName: pending.payload.fullName,
       phone: pending.payload.phone,
       mode: pending.payload.mode,
+      passwordHash: pending.payload.passwordHash,
     });
     const sessionToken = await signReferrerJwt(referrer);
 

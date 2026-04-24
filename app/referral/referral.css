@@ -137,6 +137,53 @@
   text-decoration: none;
 }
 
+.referral-resend-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: rgba(19, 34, 31, 0.72);
+  font-size: inherit;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.referral-resend-countdown,
+.referral-resend-status {
+  color: rgba(19, 34, 31, 0.5);
+  font-size: 0.94rem;
+}
+
+.referral-login-tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(19, 34, 31, 0.06);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 8px;
+}
+
+.referral-login-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 7px;
+  font-size: 0.94rem;
+  font-family: inherit;
+  cursor: pointer;
+  color: rgba(19, 34, 31, 0.6);
+  transition: background 0.15s, color 0.15s;
+}
+
+.referral-login-tab.is-active {
+  background: #fff;
+  color: rgb(19, 34, 31);
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 .referral-form-error {
   margin: 0;
   color: #b42318;
