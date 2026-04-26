@@ -228,7 +228,7 @@
 
 .table {
   width: 100%;
-  min-width: 1800px;
+  min-width: 2300px;
   border-collapse: separate;
   border-spacing: 0;
 }
@@ -280,6 +280,32 @@
   outline: none;
   min-height: 44px;
   padding: 0 14px;
+}
+
+.laborCostCell {
+  font-weight: 600;
+  background: rgba(16, 36, 31, 0.04) !important;
+}
+
+.netProfitCell {
+  font-weight: 600;
+}
+
+.checkboxCell {
+  text-align: center;
+  vertical-align: middle !important;
+}
+
+.checkboxCell input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #10241f;
+}
+
+.dimText {
+  color: rgba(16, 36, 31, 0.35);
+  padding: 0 4px;
 }
 
 @media (max-width: 1220px) {

@@ -5,9 +5,9 @@ export const navItems = [
   { label: "Contact", panel: "contact" },
 ];
 
-export const bedroomOptions = ["1 Bedroom", "2 Bedrooms", "3 Bedrooms", "4+ Bedrooms"];
+export const bedroomOptions = ["1 Bedroom", "2 Bedrooms", "3 Bedrooms", "4 Bedrooms", "5+ Bedrooms"];
 export const bathroomOptions = ["1 Bathroom", "2 Bathrooms", "3 Bathrooms", "4+ Bathrooms"];
-export const frequencyOptions = ["Weekly", "Every 2 weeks", "Every 4 weeks", "One-time"];
+export const frequencyOptions = ["Weekly", "Fortnightly", "Monthly", "One-time"];
 
 export const deepCleaningAddOns = [
   { id: "carpet", label: "Carpet cleaning", price: 70 },
@@ -18,73 +18,95 @@ export const deepCleaningAddOns = [
   { id: "windows", label: "Interior windows", price: 45 },
 ];
 
-export const quoteBasePrices = {
-  regular: {
-    "1 Bedroom": 150,
-    "2 Bedrooms": 185,
-    "3 Bedrooms": 225,
-    "4+ Bedrooms": 275,
-  },
-  deep: {
-    "1 Bedroom": 340,
-    "2 Bedrooms": 430,
-    "3 Bedrooms": 520,
-    "4+ Bedrooms": 620,
-  },
+// ─── Regular cleaning price table ─────────────────────────────────────────────
+// Combo keys: {bed}b{bath}w — prices are the minimum (inc. GST).
+// Range for regular: +$25. Range for one-off / first clean: +$40.
+// If referral code applied: entire range shifts down $20.
+
+const REGULAR_PRICE_TABLE = {
+  "1b1w": { Weekly: 110, Fortnightly: 130, Monthly: 150, "One-time": 170 },
+  "2b1w": { Weekly: 120, Fortnightly: 140, Monthly: 160, "One-time": 190 },
+  "2b2w": { Weekly: 130, Fortnightly: 165, Monthly: 180, "One-time": 210 },
+  "3b1w": { Weekly: 130, Fortnightly: 165, Monthly: 170, "One-time": 200 },
+  "3b2w": { Weekly: 150, Fortnightly: 180, Monthly: 200, "One-time": 230 },
+  "3b3w": { Weekly: 165, Fortnightly: 200, Monthly: 215, "One-time": 250 },
+  "4b1w": { Weekly: 165, Fortnightly: 200, Monthly: 215, "One-time": 250 },
+  "4b2w": { Weekly: 175, Fortnightly: 205, Monthly: 220, "One-time": 255 },
+  "4b3w": { Weekly: 200, Fortnightly: 230, Monthly: 245, "One-time": 280 },
+  "5b2w": { Weekly: 190, Fortnightly: 220, Monthly: 240, "One-time": 275 },
+  "5b3w": { Weekly: 215, Fortnightly: 245, Monthly: 265, "One-time": 300 },
+  "5b4w": { Weekly: 240, Fortnightly: 270, Monthly: 290, "One-time": 330 },
 };
 
-// One-time (no recurring schedule) prices — shown as a separate option
-// and also used as the first-visit price for new recurring customers
-export const oneTimePrices = {
-  "1 Bedroom": 180,
-  "2 Bedrooms": 220,
-  "3 Bedrooms": 270,
-  "4+ Bedrooms": 330,
+export const REGULAR_PRICE_BUFFER = 25;   // range above minimum for regular cleans
+export const FIRST_CLEAN_PRICE_BUFFER = 40; // range above minimum for one-off / first clean
+
+// Approximate clean duration with 2 cleaners, by bathroom count
+export const CLEANING_TIME_ESTIMATES = {
+  "1 Bathroom":   "About 30 min",
+  "2 Bathrooms":  "About 1 hr",
+  "3 Bathrooms":  "About 1.5 hrs",
+  "4+ Bathrooms": "About 2 hrs",
+};
+
+function getComboKey(bedrooms, bathrooms) {
+  const bed = { "1 Bedroom": 1, "2 Bedrooms": 2, "3 Bedrooms": 3, "4 Bedrooms": 4, "5+ Bedrooms": 5 }[bedrooms] ?? 2;
+  const bath = { "1 Bathroom": 1, "2 Bathrooms": 2, "3 Bathrooms": 3, "4+ Bathrooms": 4 }[bathrooms] ?? 1;
+
+  if (bed <= 1) return "1b1w";
+  if (bed === 2) return bath >= 2 ? "2b2w" : "2b1w";
+  if (bed === 3) return bath >= 3 ? "3b3w" : bath >= 2 ? "3b2w" : "3b1w";
+  if (bed === 4) return bath >= 3 ? "4b3w" : bath >= 2 ? "4b2w" : "4b1w";
+  return bath >= 4 ? "5b4w" : bath >= 3 ? "5b3w" : "5b2w";
+}
+
+export function getRegularPrice(bedrooms, bathrooms, frequency) {
+  const combo = getComboKey(bedrooms, bathrooms);
+  return REGULAR_PRICE_TABLE[combo]?.[frequency] ?? 0;
+}
+
+export function getValidBathroomOptions(bedrooms) {
+  const ranges = {
+    "1 Bedroom":  [0, 1],
+    "2 Bedrooms": [0, 2],
+    "3 Bedrooms": [0, 3],
+    "4 Bedrooms": [0, 3],
+    "5+ Bedrooms": [1, 4],
+  };
+  const [start, end] = ranges[bedrooms] ?? [0, 0];
+  return bathroomOptions.slice(start, end);
+}
+
+// ─── End-of-lease (deep clean) pricing ─────────────────────────────────────────
+// Kept separate — these follow bedroom-only base + bathroom add-on structure.
+
+export const quoteBasePrices = {
+  deep: {
+    "1 Bedroom":  340,
+    "2 Bedrooms": 430,
+    "3 Bedrooms": 520,
+    "4 Bedrooms": 620,
+    "5+ Bedrooms": 720,
+  },
 };
 
 export const bathroomAddOn = {
-  regular: {
-    "1 Bathroom": 0,
-    "2 Bathrooms": 20,
-    "3 Bathrooms": 40,
-    "4+ Bathrooms": 60,
-  },
   deep: {
-    "1 Bathroom": 0,
+    "1 Bathroom":  0,
     "2 Bathrooms": 35,
     "3 Bathrooms": 70,
     "4+ Bathrooms": 105,
   },
 };
 
-// Multipliers apply to the fortnightly base price for recurring schedules only.
-// "One-time" uses oneTimePrices directly — not this table.
-export const frequencyMultiplier = {
-  Weekly: 0.9,
-  "Every 2 weeks": 1,
-  "Every 4 weeks": 1.08,
-};
-
 export const quoteBaseRanges = {
-  regular: {
-    "1 Bedroom":   { low: 130, high: 165 },
-    "2 Bedrooms":  { low: 165, high: 200 },
-    "3 Bedrooms":  { low: 200, high: 245 },
-    "4+ Bedrooms": { low: 245, high: 295 },
-  },
   deep: {
-    "1 Bedroom":   { low: 295, high: 375 },
-    "2 Bedrooms":  { low: 380, high: 475 },
-    "3 Bedrooms":  { low: 460, high: 575 },
-    "4+ Bedrooms": { low: 550, high: 690 },
+    "1 Bedroom":  { low: 295, high: 375 },
+    "2 Bedrooms": { low: 380, high: 475 },
+    "3 Bedrooms": { low: 460, high: 575 },
+    "4 Bedrooms": { low: 550, high: 690 },
+    "5+ Bedrooms": { low: 640, high: 800 },
   },
-};
-
-export const oneTimeRanges = {
-  "1 Bedroom":   { low: 155, high: 195 },
-  "2 Bedrooms":  { low: 195, high: 240 },
-  "3 Bedrooms":  { low: 235, high: 295 },
-  "4+ Bedrooms": { low: 290, high: 360 },
 };
 
 export const services = [
@@ -99,7 +121,7 @@ export const services = [
       "For homes that want reliable upkeep on a schedule that fits — or a one-off tidy when you need it.",
     featured: true,
     badge: "Popular",
-    priceNote: "From $150",
+    priceNote: "From $110",
     tone: "featured",
     ctaLabel: "Select this service",
     learnMoreLabel: "View details",

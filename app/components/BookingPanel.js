@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -22,10 +23,12 @@ import {
   bathroomOptions,
   bedroomOptions,
   deepCleaningAddOns,
-  frequencyMultiplier,
   frequencyOptions,
-  oneTimePrices,
-  oneTimeRanges,
+  getRegularPrice,
+  getValidBathroomOptions,
+  REGULAR_PRICE_BUFFER,
+  FIRST_CLEAN_PRICE_BUFFER,
+  CLEANING_TIME_ESTIMATES,
   quoteBasePrices,
   quoteBaseRanges,
   services,
@@ -47,9 +50,9 @@ function getSteps(serviceId) {
 
 function getInitialFormState() {
   return {
-    bedrooms: "2 Bedrooms",
-    bathrooms: "2 Bathrooms",
-    frequency: "Every 2 weeks",
+    bedrooms: "1 Bedroom",
+    bathrooms: "1 Bathroom",
+    frequency: "Weekly",
     addOns: [],
     companyName: "",
     siteType: "",
@@ -138,20 +141,17 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
     }
 
     if (selectedServiceId === "regular") {
-      const bathroomExtra = bathroomAddOn.regular[form.bathrooms];
-
       if (form.frequency === "One-time") {
-        const base = oneTimePrices[form.bedrooms] + bathroomExtra;
+        const base = getRegularPrice(form.bedrooms, form.bathrooms, "One-time");
         return { amount: base, addOnsTotal: 0, base, isOneTime: true };
       }
 
-      const recurringBase = quoteBasePrices.regular[form.bedrooms] + bathroomExtra;
-      const withFrequency = Math.round(recurringBase * frequencyMultiplier[form.frequency]);
-      const firstCleanPrice = oneTimePrices[form.bedrooms] + bathroomExtra;
+      const base = getRegularPrice(form.bedrooms, form.bathrooms, form.frequency);
+      const firstCleanPrice = getRegularPrice(form.bedrooms, form.bathrooms, "One-time");
       return {
-        amount: withFrequency,
+        amount: base,
         addOnsTotal: 0,
-        base: withFrequency,
+        base,
         isOneTime: false,
         firstCleanPrice,
       };
@@ -195,19 +195,17 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
     if (!selectedServiceId || selectedServiceId === "commercial" || !form.bedrooms || !form.bathrooms) return null;
 
     if (selectedServiceId === "regular") {
-      const extra = bathroomAddOn.regular[form.bathrooms];
       if (form.frequency === "One-time") {
-        const r = oneTimeRanges[form.bedrooms];
-        return { low: r.low + extra, high: r.high + extra, isOneTime: true };
+        const price = getRegularPrice(form.bedrooms, form.bathrooms, "One-time");
+        return { low: price, high: price + FIRST_CLEAN_PRICE_BUFFER, isOneTime: true };
       }
-      const r = quoteBaseRanges.regular[form.bedrooms];
-      const mul = frequencyMultiplier[form.frequency];
-      const fr = oneTimeRanges[form.bedrooms];
+      const price = getRegularPrice(form.bedrooms, form.bathrooms, form.frequency);
+      const firstCleanPrice = getRegularPrice(form.bedrooms, form.bathrooms, "One-time");
       return {
-        low: roundTo5((r.low + extra) * mul),
-        high: roundTo5((r.high + extra) * mul),
+        low: price,
+        high: price + REGULAR_PRICE_BUFFER,
         isOneTime: false,
-        firstClean: { low: fr.low + extra, high: fr.high + extra },
+        firstClean: { low: firstCleanPrice, high: firstCleanPrice + FIRST_CLEAN_PRICE_BUFFER },
       };
     }
 
@@ -219,8 +217,25 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
     return { low: r.low + extra + addOnsTotal, high: r.high + extra + addOnsTotal };
   }, [form, selectedServiceId]);
 
+  const validBathroomOptions = selectedServiceId === "regular"
+    ? getValidBathroomOptions(form.bedrooms)
+    : bathroomOptions;
+
   function updateField(name, value) {
     setForm((current) => ({ ...current, [name]: value }));
+  }
+
+  function handleBedroomChange(name, value) {
+    setForm((current) => {
+      const updated = { ...current, [name]: value };
+      if (selectedServiceId === "regular") {
+        const valid = getValidBathroomOptions(value);
+        if (current.bathrooms && !valid.includes(current.bathrooms)) {
+          updated.bathrooms = "";
+        }
+      }
+      return updated;
+    });
   }
 
   function updateDiscountCode(value) {
@@ -725,21 +740,21 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
 
                   {selectedService.id === "regular" ? (
                     <div className="quote-grid quote-grid-regular">
-                      <div className="quote-group">
+                      <div className="quote-group quote-group-wide">
                         <span>Bedrooms</span>
                         <ScrollPicker
                           name="bedrooms"
-                          onChange={updateField}
+                          onChange={handleBedroomChange}
                           options={bedroomOptions}
                           placeholder="Please scroll to choose"
                           value={form.bedrooms}
                         />
-                        <div className="choice-grid">
+                        <div className="choice-grid choice-grid-5col">
                           {bedroomOptions.map((option) => (
                             <button
                               className={`choice-card ${form.bedrooms === option ? "selected" : ""}`}
                               key={option}
-                              onClick={() => updateField("bedrooms", option)}
+                              onClick={() => handleBedroomChange("bedrooms", option)}
                               type="button"
                             >
                               {option}
@@ -748,26 +763,30 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                         </div>
                       </div>
 
-                      <div className="quote-group">
+                      <div className="quote-group quote-group-wide">
                         <span>Bathrooms</span>
                         <ScrollPicker
                           name="bathrooms"
                           onChange={updateField}
-                          options={bathroomOptions}
+                          options={validBathroomOptions}
                           placeholder="Please scroll to choose"
                           value={form.bathrooms}
                         />
-                        <div className="choice-grid">
-                          {bathroomOptions.map((option) => (
-                            <button
-                              className={`choice-card ${form.bathrooms === option ? "selected" : ""}`}
-                              key={option}
-                              onClick={() => updateField("bathrooms", option)}
-                              type="button"
-                            >
-                              {option}
-                            </button>
-                          ))}
+                        <div className="choice-grid choice-grid-4col">
+                          {bathroomOptions.map((option) => {
+                            const isValid = validBathroomOptions.includes(option);
+                            return (
+                              <button
+                                className={`choice-card ${form.bathrooms === option ? "selected" : ""} ${!isValid ? "disabled" : ""}`}
+                                disabled={!isValid}
+                                key={option}
+                                onClick={() => isValid && updateField("bathrooms", option)}
+                                type="button"
+                              >
+                                {option}
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
 
@@ -871,22 +890,41 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                           {quote?.addOnsTotal > 0 && (
                             <p className="quote-live-detail">Includes add-ons ${quote.addOnsTotal}</p>
                           )}
+                          {selectedServiceId === "regular" && form.bathrooms && CLEANING_TIME_ESTIMATES[form.bathrooms] && (
+                            <p className="quote-live-detail">{CLEANING_TIME_ESTIMATES[form.bathrooms]} with 2 cleaners</p>
+                          )}
                         </div>
                         <div className="quote-estimate-right">
                           {selectedServiceId === "regular" && !quoteRange.isOneTime ? (
-                            <p className="quote-estimate-note">
-                              Your first visit will be{" "}
-                              <AnimatedPrice amount={pricingSummary?.discountAmount ? Math.max(0, quoteRange.firstClean.low - pricingSummary.discountAmount) : quoteRange.firstClean.low} />–<AnimatedPrice amount={pricingSummary?.discountAmount ? Math.max(0, quoteRange.firstClean.high - pricingSummary.discountAmount) : quoteRange.firstClean.high} />{" "}
-                              {pricingSummary?.discountAmount
-                                ? `(after ${discountState.code}) `
-                                : "— a little more to work through than usual, since we\u2019re starting fresh. "}
-                              Once we&apos;re into the rhythm, each visit is{" "}
-                              <AnimatedPrice amount={quoteRange.low} />–<AnimatedPrice amount={quoteRange.high} />.{" "}
-                              Estimate based on your selections.{" "}
-                              <button type="button" className="quote-details-link" onClick={() => setShowDetailsModal(true)}>
-                                View details
-                              </button>
-                            </p>
+                            pricingSummary?.discountAmount ? (
+                              <div className="first-visit-deal">
+                                <p className="first-visit-label">First visit price</p>
+                                <span className="first-visit-strike">
+                                  <AnimatedPrice amount={quoteRange.firstClean.low} />–<AnimatedPrice amount={quoteRange.firstClean.high} />
+                                </span>
+                                <div className="first-visit-deal-row">
+                                  <span className="first-visit-discounted">
+                                    <AnimatedPrice amount={Math.max(0, quoteRange.firstClean.low - pricingSummary.discountAmount)} />–<AnimatedPrice amount={Math.max(0, quoteRange.firstClean.high - pricingSummary.discountAmount)} />
+                                  </span>
+                                  <span className="first-visit-savings-badge">Save ${pricingSummary.discountAmount}</span>
+                                </div>
+                                <p className="first-visit-ongoing">
+                                  Then <AnimatedPrice amount={quoteRange.low} />–<AnimatedPrice amount={quoteRange.high} /> each ongoing visit.{" "}
+                                  <button type="button" className="quote-details-link" onClick={() => setShowDetailsModal(true)}>View details</button>
+                                </p>
+                              </div>
+                            ) : (
+                              <p className="quote-estimate-note">
+                                Your first visit will be{" "}
+                                <AnimatedPrice amount={quoteRange.firstClean.low} />–<AnimatedPrice amount={quoteRange.firstClean.high} />{" "}
+                                — a little more to work through than usual, since we&apos;re starting fresh. Once we&apos;re into the rhythm, each visit is{" "}
+                                <AnimatedPrice amount={quoteRange.low} />–<AnimatedPrice amount={quoteRange.high} />.{" "}
+                                Estimate based on your selections.{" "}
+                                <button type="button" className="quote-details-link" onClick={() => setShowDetailsModal(true)}>
+                                  View details
+                                </button>
+                              </p>
+                            )
                           ) : (
                             <p className="quote-live-disclaimer">
                               Estimate based on your selections.{" "}
@@ -902,17 +940,20 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
 
                   {selectedService.id !== "commercial" && (
                     <div className="quote-referral-section">
-                      <input
-                        name="discountCode"
-                        onChange={(event) => updateDiscountCode(event.target.value)}
-                        placeholder="Referral code (optional)"
-                        type="text"
-                        value={form.discountCode}
-                      />
-                      {discountState.message ? (
-                        <p className={`discount-code-feedback ${discountState.status === "valid" ? "is-valid" : "is-error"}`}>
-                          {discountState.message}
-                        </p>
+                      <div className="referral-input-row">
+                        <input
+                          name="discountCode"
+                          onChange={(event) => updateDiscountCode(event.target.value)}
+                          placeholder="Referral code (optional)"
+                          type="text"
+                          value={form.discountCode}
+                        />
+                        {discountState.status === "valid" && discountState.message ? (
+                          <span className="discount-applied-inline">{discountState.message}</span>
+                        ) : null}
+                      </div>
+                      {discountState.status === "invalid" && discountState.message ? (
+                        <p className="discount-code-feedback is-error">{discountState.message}</p>
                       ) : null}
                     </div>
                   )}
@@ -1255,22 +1296,27 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
           </div>
         </div>
       </div>
-      {showDetailsModal && (
+      {showDetailsModal && createPortal(
         <div className="quote-modal-overlay" onClick={() => setShowDetailsModal(false)}>
           <div className="quote-modal" onClick={(e) => e.stopPropagation()}>
             <button className="quote-modal-close" onClick={() => setShowDetailsModal(false)} type="button">✕</button>
             <h3>About your estimate</h3>
             <ul>
-              <li>This is an estimate based on your selections. Your final price is confirmed before work begins.</li>
+              <li>This is an estimate based on your selections. Your final price is confirmed with you before work begins.</li>
               {selectedServiceId === "regular" && !quoteRange?.isOneTime && (
-                <li>Your first clean is priced a little higher — once we&apos;re into the routine, ongoing visits stay within the ongoing estimate.</li>
+                <li>Your first visit is priced a little higher — it takes longer to get a home to baseline. Once we&apos;re into the routine, each visit stays within the ongoing estimate.</li>
               )}
-              <li>A referral discount applies to your first clean only.</li>
-              <li>Visit length is typically 2–4 hours depending on size and condition.</li>
-              <li>We work as a small team, so timing may vary slightly with travel.</li>
+              {form.bathrooms && CLEANING_TIME_ESTIMATES[form.bathrooms] && (
+                <li>Based on your bathroom count, expect {CLEANING_TIME_ESTIMATES[form.bathrooms]} per visit with 2 cleaners.</li>
+              )}
+              {discountState.status === "valid" && (
+                <li>Your referral discount of ${discountState.discountAmount} applies to your first clean only.</li>
+              )}
+              <li>Arrival times may vary slightly depending on travel between jobs.</li>
             </ul>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   );

@@ -2,7 +2,7 @@ import VideoShell from "../../components/VideoShell";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Regular House Cleaning Sydney — From $150 | PureGlim",
+  title: "Regular House Cleaning Sydney — From $110 | PureGlim",
   description:
     "Get an estimate online. Reliable fortnightly or weekly home cleaning across Sydney. Kitchen, bathrooms, vacuuming, mopping, and more — consistent every visit.",
 };
@@ -19,10 +19,10 @@ const serviceSchema = {
   offers: {
     "@type": "Offer",
     priceSpecification: [
-      { "@type": "PriceSpecification", name: "1 bedroom", price: "150", priceCurrency: "AUD" },
-      { "@type": "PriceSpecification", name: "2 bedrooms", price: "185", priceCurrency: "AUD" },
-      { "@type": "PriceSpecification", name: "3 bedrooms", price: "225", priceCurrency: "AUD" },
-      { "@type": "PriceSpecification", name: "4+ bedrooms", price: "275", priceCurrency: "AUD" },
+      { "@type": "PriceSpecification", name: "1 bedroom fortnightly", price: "130", priceCurrency: "AUD" },
+      { "@type": "PriceSpecification", name: "2 bedrooms fortnightly", price: "140", priceCurrency: "AUD" },
+      { "@type": "PriceSpecification", name: "3 bedrooms fortnightly", price: "165", priceCurrency: "AUD" },
+      { "@type": "PriceSpecification", name: "4+ bedrooms fortnightly", price: "200", priceCurrency: "AUD" },
     ],
   },
   url: "https://pureglim.com.au/services/regular-cleaning",
@@ -37,7 +37,7 @@ export default function RegularCleaningPage() {
       </div>
 
       <p className="rp-eyebrow">Residential cleaning</p>
-      <h1 className="rp-h1">Regular house cleaning — from $150</h1>
+      <h1 className="rp-h1">Regular house cleaning — from $110</h1>
       <p className="rp-intro">
         A home that stays consistently clean without you having to manage it. We arrive when
         expected, work to a fixed standard, and leave — no supervision required. Weekly,
@@ -60,14 +60,14 @@ export default function RegularCleaningPage() {
       <section className="rp-section">
         <h2 className="rp-h2">Pricing</h2>
         <p className="rp-body">
-          Fortnightly rates below. Weekly bookings receive a 10% discount. One-off cleans are
-          available at a slightly higher rate.
+          Fortnightly starting rates below (1 bathroom). Weekly from $110 — our most affordable option.
+          One-off and first-visit cleans available at a slightly higher rate. Use a referral code for $20 off your first clean.
         </p>
         <div className="rp-price-grid">
-          <div className="rp-price-card"><strong>$150</strong><span>1 bedroom</span></div>
-          <div className="rp-price-card"><strong>$185</strong><span>2 bedrooms</span></div>
-          <div className="rp-price-card"><strong>$225</strong><span>3 bedrooms</span></div>
-          <div className="rp-price-card"><strong>$275</strong><span>4 bedrooms+</span></div>
+          <div className="rp-price-card"><strong>$130</strong><span>1 bedroom</span></div>
+          <div className="rp-price-card"><strong>$140</strong><span>2 bedrooms</span></div>
+          <div className="rp-price-card"><strong>$165</strong><span>3 bedrooms</span></div>
+          <div className="rp-price-card"><strong>$200</strong><span>4 bedrooms+</span></div>
         </div>
       </section>
 

@@ -2,18 +2,20 @@
 
 import { useEffect, useRef } from "react";
 
-const pickerRowHeight = 56;
-
 export default function ScrollPicker({ name, onChange, options, placeholder, value }) {
   const pickerRef = useRef(null);
   const scrollTimerRef = useRef(null);
   const values = ["", ...options];
 
+  function getRowHeight() {
+    return pickerRef.current?.clientHeight ?? 56;
+  }
+
   useEffect(() => {
     const element = pickerRef.current;
     if (!element) return;
     const selectedIndex = Math.max(0, options.indexOf(value) + 1);
-    element.scrollTo({ top: selectedIndex * pickerRowHeight, behavior: "auto" });
+    element.scrollTo({ top: selectedIndex * getRowHeight(), behavior: "auto" });
   }, [options, value]);
 
   useEffect(() => {
@@ -22,18 +24,13 @@ export default function ScrollPicker({ name, onChange, options, placeholder, val
     };
   }, []);
 
-  function syncValueFromScroll() {
+  function handleScrollEnd() {
     const element = pickerRef.current;
     if (!element) return;
-    const selectedIndex = Math.round(element.scrollTop / pickerRowHeight);
+    const rowHeight = getRowHeight();
+    const selectedIndex = Math.round(element.scrollTop / rowHeight);
+    element.scrollTo({ top: selectedIndex * rowHeight, behavior: "smooth" });
     onChange(name, values[selectedIndex] ?? "");
-  }
-
-  function settleScroll() {
-    const element = pickerRef.current;
-    if (!element) return;
-    const selectedIndex = Math.round(element.scrollTop / pickerRowHeight);
-    element.scrollTo({ top: selectedIndex * pickerRowHeight, behavior: "smooth" });
   }
 
   return (
@@ -41,9 +38,8 @@ export default function ScrollPicker({ name, onChange, options, placeholder, val
       <div
         className={`picker-wheel ${value ? "has-value" : ""}`}
         onScroll={() => {
-          syncValueFromScroll();
           if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
-          scrollTimerRef.current = setTimeout(() => { settleScroll(); }, 90);
+          scrollTimerRef.current = setTimeout(handleScrollEnd, 200);
         }}
         ref={pickerRef}
       >
@@ -57,7 +53,7 @@ export default function ScrollPicker({ name, onChange, options, placeholder, val
               key={label}
               onClick={() => {
                 onChange(name, option);
-                pickerRef.current?.scrollTo({ top: index * pickerRowHeight, behavior: "smooth" });
+                pickerRef.current?.scrollTo({ top: index * getRowHeight(), behavior: "smooth" });
               }}
               type="button"
             >

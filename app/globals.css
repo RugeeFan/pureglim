@@ -688,6 +688,38 @@ button {
   background: rgba(255, 255, 255, 0.11);
 }
 
+.choice-grid-5col {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.choice-grid-4col {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.choice-grid-5col .choice-card,
+.choice-grid-4col .choice-card {
+  min-height: 52px;
+  padding: 12px 10px;
+  font-size: 0.88rem;
+  text-align: center;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+}
+
+.choice-card.disabled {
+  opacity: 0.28;
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.choice-card.disabled:hover {
+  transform: none;
+  background: rgba(255, 255, 255, 0.03);
+}
+
 .choice-card.selected {
   color: #0b1614;
   background: rgba(245, 251, 248, 0.96);
@@ -3947,6 +3979,24 @@ a.contact-card:hover {
   gap: 8px;
 }
 
+.referral-input-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.referral-input-row input {
+  flex: 0 0 auto;
+}
+
+.discount-applied-inline {
+  font-size: 0.82rem;
+  color: #6ee7b7;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 .quote-referral-section input {
   width: 100%;
   max-width: 280px;
@@ -4025,12 +4075,97 @@ a.contact-card:hover {
 
 .quote-estimate-note {
   margin: 0;
-  font-size: 0.85rem;
-  line-height: 1.65;
+  font-size: 0.93rem;
+  line-height: 1.68;
   color: var(--muted);
 }
 
 .quote-estimate-note strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ── First-visit deal section (discount applied) ─────────────────────────── */
+.first-visit-deal {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: dealReveal 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes dealReveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.first-visit-deal-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.first-visit-strike {
+  font-size: 1.3rem;
+  text-decoration: line-through;
+  opacity: 0.38;
+  color: var(--text);
+  line-height: 1;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.first-visit-strike strong {
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.first-visit-discounted {
+  line-height: 1;
+  color: #6ee7b7;
+  letter-spacing: -0.02em;
+}
+
+.first-visit-discounted strong {
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #6ee7b7;
+}
+
+.first-visit-savings-badge {
+  background: rgba(110, 231, 183, 0.14);
+  border: 1px solid rgba(110, 231, 183, 0.35);
+  color: #6ee7b7;
+  border-radius: 100px;
+  padding: 3px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.first-visit-label {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: rgba(245, 251, 248, 0.78);
+  margin: 0 0 2px;
+  letter-spacing: 0.01em;
+}
+
+.first-visit-ongoing {
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin: 2px 0 0;
+  line-height: 1.55;
+}
+
+.first-visit-ongoing strong {
   color: var(--text);
   font-weight: 600;
 }
@@ -4074,7 +4209,7 @@ a.contact-card:hover {
 .quote-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4083,31 +4218,52 @@ a.contact-card:hover {
 }
 
 .quote-modal {
-  background: #fff;
-  border-radius: 16px;
-  padding: 32px;
-  max-width: 480px;
+  background: linear-gradient(160deg, rgba(38, 58, 52, 0.97), rgba(22, 36, 32, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 20px;
+  padding: 32px 28px 28px;
+  max-width: 460px;
   width: 100%;
   position: relative;
-  color: #1a1a1a;
+  color: var(--text);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  animation: modalIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .quote-modal h3 {
-  margin: 0 0 16px;
+  margin: 0 0 18px;
   font-size: 1.05rem;
   font-weight: 700;
-  color: #111;
+  color: var(--text);
 }
 
 .quote-modal ul {
   margin: 0;
-  padding: 0 0 0 20px;
+  padding: 0;
+  list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   font-size: 0.875rem;
-  line-height: 1.55;
-  color: #444;
+  line-height: 1.6;
+  color: rgba(245, 251, 248, 0.72);
+}
+
+.quote-modal ul li {
+  padding-left: 16px;
+  position: relative;
+}
+
+.quote-modal ul li::before {
+  content: "–";
+  position: absolute;
+  left: 0;
+  opacity: 0.45;
 }
 
 .quote-modal-close {
@@ -4118,8 +4274,9 @@ a.contact-card:hover {
   border: none;
   font-size: 1rem;
   cursor: pointer;
-  color: #888;
+  color: rgba(245, 251, 248, 0.45);
   line-height: 1;
   padding: 4px 6px;
+  transition: color 150ms ease;
 }
-.quote-modal-close:hover { color: #111; }
+.quote-modal-close:hover { color: var(--text); }

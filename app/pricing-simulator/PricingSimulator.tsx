@@ -1,676 +1,320 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { bathroomOptions, bedroomOptions } from "../data/constants";
 import styles from "./pricing-simulator.module.css";
 import {
-  defaultOwnerFirstPricingSimulatorRows,
-  defaultPricingSimulatorRows,
-  emptyOwnerFirstPricingSimulatorRow,
-  emptyPricingSimulatorRow,
-  type CleanType,
-  type PricingSimulatorOwnerFirstRowInput,
-  type PricingSimulatorRowInput,
-  type ReferralCommissionType,
-} from "../../lib/pricing-simulator/defaultRows";
+  EOL_ROOM_CONFIGS,
+  FREQUENCY_OPTIONS,
+  REGULAR_ROOM_CONFIGS,
+  isValidEolConfig,
+} from "../../lib/pricing-simulator/pricingData";
 import {
-  calculateOwnerFirstPricingRow,
-  calculateOwnerFirstPricingSummary,
-  calculatePricingRow,
-  calculatePricingSummary,
-} from "../../lib/pricing-simulator/calculations";
+  defaultRows as initialRows,
+  emptyRow,
+  type CommissionType,
+  type SimulatorRowInput,
+} from "../../lib/pricing-simulator/defaultRows";
+import { calculateRow, calculateSummary } from "../../lib/pricing-simulator/calculations";
 
-const cleanTypeOptions: Array<{ value: CleanType; label: string }> = [
-  { value: "regular", label: "Regular" },
-  { value: "first", label: "First Clean" },
-  { value: "deep", label: "Deep Clean" },
+const COMMISSION_TYPE_OPTIONS: Array<{ value: CommissionType; label: string }> = [
+  { value: "fixed", label: "固定金额" },
+  { value: "percent", label: "百分比" },
 ];
 
-const commissionTypeOptions: Array<{ value: ReferralCommissionType; label: string }> = [
-  { value: "fixed", label: "Fixed" },
-  { value: "percent", label: "Percent" },
-];
-
-const currencyFormatter = new Intl.NumberFormat("en-AU", {
+const currencyFmt = new Intl.NumberFormat("en-AU", {
   style: "currency",
   currency: "AUD",
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
 
-const numberFormatter = new Intl.NumberFormat("en-AU", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
-const formatCurrency = (value: number) => currencyFormatter.format(value);
-const formatPercent = (value: number) => `${numberFormatter.format(value)}%`;
-
-const parseNumberInput = (value: string) => {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
+const fmtCurrency = (v: number) => currencyFmt.format(v);
+const parseNum = (s: string) => {
+  const n = Number(s);
+  return Number.isFinite(n) ? n : 0;
 };
-
-export default function PricingSimulator() {
-  const [poolSplitRows, setPoolSplitRows] = useState<PricingSimulatorRowInput[]>(
-    defaultPricingSimulatorRows,
-  );
-  const [ownerFirstRows, setOwnerFirstRows] = useState<PricingSimulatorOwnerFirstRowInput[]>(
-    defaultOwnerFirstPricingSimulatorRows,
-  );
-
-  const calculatedPoolSplitRows = useMemo(
-    () => poolSplitRows.map(calculatePricingRow),
-    [poolSplitRows],
-  );
-  const poolSplitSummary = useMemo(
-    () => calculatePricingSummary(calculatedPoolSplitRows),
-    [calculatedPoolSplitRows],
-  );
-
-  const calculatedOwnerFirstRows = useMemo(
-    () => ownerFirstRows.map(calculateOwnerFirstPricingRow),
-    [ownerFirstRows],
-  );
-  const ownerFirstSummary = useMemo(
-    () => calculateOwnerFirstPricingSummary(calculatedOwnerFirstRows),
-    [calculatedOwnerFirstRows],
-  );
-
-  const updatePoolSplitRow = <K extends keyof PricingSimulatorRowInput>(
-    rowId: string,
-    field: K,
-    value: PricingSimulatorRowInput[K],
-  ) => {
-    setPoolSplitRows((current) =>
-      current.map((row) => (row.id === rowId ? { ...row, [field]: value } : row)),
-    );
-  };
-
-  const updateOwnerFirstRow = <K extends keyof PricingSimulatorOwnerFirstRowInput>(
-    rowId: string,
-    field: K,
-    value: PricingSimulatorOwnerFirstRowInput[K],
-  ) => {
-    setOwnerFirstRows((current) =>
-      current.map((row) => (row.id === rowId ? { ...row, [field]: value } : row)),
-    );
-  };
-
-  return (
-    <div className={styles.pageShell}>
-      <section className={styles.hero}>
-        <div>
-          <p className={styles.eyebrow}>Pricing simulator</p>
-          <h1>Clean pricing and profit calculator.</h1>
-          <p className={styles.lead}>
-            Use this page to test different property sizes, clean types, discounts, referral deals,
-            labour cost, and profit distribution. Everything runs in front-end state only, so you can
-            change numbers freely without touching the real booking system.
-          </p>
-        </div>
-        <div className={styles.logicCard}>
-          <h2>What this page compares</h2>
-          <ol>
-            <li>All inputs are editable and recalculate immediately</li>
-            <li>Prices are treated as GST-inclusive</li>
-            <li>Referral commission can be fixed or percentage-based</li>
-            <li>Section one keeps your current 50 / 50 profit-pool split logic</li>
-            <li>Section two models taking your own cut first before partner + fleet sharing</li>
-          </ol>
-        </div>
-      </section>
-
-      <section className={styles.sectionBlock}>
-        <div className={styles.sectionIntro}>
-          <div>
-            <p className={styles.sectionEyebrow}>Model A</p>
-            <h2>Profit pool split 50 / 50.</h2>
-            <p>
-              This follows the simpler structure: customer payable, remove GST and referral, deduct fleet cost,
-              then split the remaining profit pool evenly between you and the partner.
-            </p>
-          </div>
-          <div className={styles.logicMiniCard}>
-            <strong>Formula</strong>
-            <span>customer payable = list price - customer discount</span>
-            <span>profit pool = customer payable - GST - referral - fleet cost</span>
-            <span>my profit = profit pool / 2</span>
-            <span>partner profit = profit pool / 2</span>
-          </div>
-        </div>
-
-        <section className={styles.summaryGrid}>
-          <SummaryCard
-            label="Customer payable"
-            value={formatCurrency(poolSplitSummary.customerPayable)}
-          />
-          <SummaryCard label="GST total" value={formatCurrency(poolSplitSummary.gstAmount)} />
-          <SummaryCard
-            label="Referral total"
-            value={formatCurrency(poolSplitSummary.referralCommission)}
-          />
-          <SummaryCard
-            label="Fleet cost total"
-            value={formatCurrency(poolSplitSummary.fleetCost)}
-          />
-          <SummaryCard
-            label="Profit pool total"
-            value={formatCurrency(poolSplitSummary.profitPoolBeforeSplit)}
-            tone={poolSplitSummary.profitPoolBeforeSplit < 0 ? "negative" : "default"}
-          />
-          <SummaryCard
-            label="My profit total"
-            value={formatCurrency(poolSplitSummary.myProfit)}
-            tone={poolSplitSummary.myProfit < 0 ? "negative" : "positive"}
-          />
-          <SummaryCard
-            label="Partner profit total"
-            value={formatCurrency(poolSplitSummary.partnerProfit)}
-            tone={poolSplitSummary.partnerProfit < 0 ? "negative" : "positive"}
-          />
-        </section>
-
-        <SectionToolbar
-          title="Editable pricing rows"
-          description="Adjust list price, discount, referral setup, and fleet cost. Results refresh live."
-          onReset={() => setPoolSplitRows(defaultPricingSimulatorRows)}
-          onAdd={() => setPoolSplitRows((current) => [...current, emptyPricingSimulatorRow()])}
-        />
-
-        <section className={styles.tableShell}>
-          <div className={styles.tableScroller}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Label</th>
-                  <th>Bedrooms</th>
-                  <th>Bathrooms</th>
-                  <th>Clean type</th>
-                  <th>List price (inc GST)</th>
-                  <th>Customer discount</th>
-                  <th>Referral type</th>
-                  <th>Referral value</th>
-                  <th>Fleet cost</th>
-                  <th>Customer payable</th>
-                  <th>GST</th>
-                  <th>Revenue ex GST</th>
-                  <th>Referral commission</th>
-                  <th>Profit pool</th>
-                  <th>My profit</th>
-                  <th>Partner profit</th>
-                  <th>Margin</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {calculatedPoolSplitRows.map((row) => (
-                  <tr key={row.id} className={styles[`row-${row.health}` as keyof typeof styles]}>
-                    <td>
-                      <input
-                        className={styles.textInput}
-                        value={row.label}
-                        onChange={(event) =>
-                          updatePoolSplitRow(row.id, "label", event.target.value)
-                        }
-                      />
-                    </td>
-                    <td>
-                      <select
-                        className={styles.selectInput}
-                        value={row.bedrooms}
-                        onChange={(event) =>
-                          updatePoolSplitRow(row.id, "bedrooms", event.target.value)
-                        }
-                      >
-                        {bedroomOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <select
-                        className={styles.selectInput}
-                        value={row.bathrooms}
-                        onChange={(event) =>
-                          updatePoolSplitRow(row.id, "bathrooms", event.target.value)
-                        }
-                      >
-                        {bathroomOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <select
-                        className={styles.selectInput}
-                        value={row.cleanType}
-                        onChange={(event) =>
-                          updatePoolSplitRow(row.id, "cleanType", event.target.value as CleanType)
-                        }
-                      >
-                        {cleanTypeOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <NumberInput
-                        value={row.listPriceIncGst}
-                        onChange={(value) => updatePoolSplitRow(row.id, "listPriceIncGst", value)}
-                      />
-                    </td>
-                    <td>
-                      <NumberInput
-                        value={row.customerDiscount}
-                        onChange={(value) => updatePoolSplitRow(row.id, "customerDiscount", value)}
-                      />
-                    </td>
-                    <td>
-                      <select
-                        className={styles.selectInput}
-                        value={row.referralCommissionType}
-                        onChange={(event) =>
-                          updatePoolSplitRow(
-                            row.id,
-                            "referralCommissionType",
-                            event.target.value as ReferralCommissionType,
-                          )
-                        }
-                      >
-                        {commissionTypeOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <NumberInput
-                        value={row.referralCommissionValue}
-                        onChange={(value) =>
-                          updatePoolSplitRow(row.id, "referralCommissionValue", value)
-                        }
-                      />
-                    </td>
-                    <td>
-                      <NumberInput
-                        value={row.fleetCost}
-                        onChange={(value) => updatePoolSplitRow(row.id, "fleetCost", value)}
-                      />
-                    </td>
-                    <td>{formatCurrency(row.customerPayable)}</td>
-                    <td>{formatCurrency(row.gstAmount)}</td>
-                    <td>{formatCurrency(row.revenueExGst)}</td>
-                    <td>
-                      {row.referralCommissionType === "percent"
-                        ? `${formatCurrency(row.referralCommission)} (${formatPercent(
-                            row.referralCommissionValue,
-                          )})`
-                        : formatCurrency(row.referralCommission)}
-                    </td>
-                    <td>{formatCurrency(row.profitPoolBeforeSplit)}</td>
-                    <td>{formatCurrency(row.myProfit)}</td>
-                    <td>{formatCurrency(row.partnerProfit)}</td>
-                    <td>{formatPercent(row.marginPercent)}</td>
-                    <td>
-                      <DeleteButton onDelete={() =>
-                        setPoolSplitRows((current) => current.filter((item) => item.id !== row.id))
-                      } label={row.label} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </section>
-
-      <section className={styles.sectionBlock}>
-        <div className={styles.sectionIntro}>
-          <div>
-            <p className={styles.sectionEyebrow}>Model B</p>
-            <h2>Take your own cut first.</h2>
-            <p>
-              This version removes GST and referral first, then lets you pull out your own cut using
-              a fixed amount or a percentage of the post-referral base pool. What remains is the amount
-              available for partner and fleet together, with fleet cost then reducing the partner side.
-            </p>
-          </div>
-          <div className={styles.logicMiniCard}>
-            <strong>Formula</strong>
-            <span>base pool = customer payable - GST - referral</span>
-            <span>my take = fixed amount or % of base pool</span>
-            <span>left for partner + fleet = base pool - my take</span>
-            <span>partner after fleet = left for partner + fleet - fleet cost</span>
-          </div>
-        </div>
-
-        <section className={styles.summaryGrid}>
-          <SummaryCard
-            label="Customer payable"
-            value={formatCurrency(ownerFirstSummary.customerPayable)}
-          />
-          <SummaryCard label="GST total" value={formatCurrency(ownerFirstSummary.gstAmount)} />
-          <SummaryCard
-            label="Referral total"
-            value={formatCurrency(ownerFirstSummary.referralCommission)}
-          />
-          <SummaryCard
-            label="My take total"
-            value={formatCurrency(ownerFirstSummary.myTakeAmount)}
-            tone={ownerFirstSummary.myTakeAmount > 0 ? "positive" : "default"}
-          />
-          <SummaryCard
-            label="Fleet cost total"
-            value={formatCurrency(ownerFirstSummary.fleetCost)}
-          />
-          <SummaryCard
-            label="Left for partner + fleet"
-            value={formatCurrency(ownerFirstSummary.remainingForPartnerAndFleet)}
-            tone={ownerFirstSummary.remainingForPartnerAndFleet < 0 ? "negative" : "default"}
-          />
-          <SummaryCard
-            label="Partner after fleet"
-            value={formatCurrency(ownerFirstSummary.partnerAfterFleet)}
-            tone={ownerFirstSummary.partnerAfterFleet < 0 ? "negative" : "positive"}
-          />
-        </section>
-
-        <SectionToolbar
-          title="Owner-take simulation"
-          description="Use this version when you want your own take removed before partner and fleet share the remainder."
-          onReset={() => setOwnerFirstRows(defaultOwnerFirstPricingSimulatorRows)}
-          onAdd={() =>
-            setOwnerFirstRows((current) => [...current, emptyOwnerFirstPricingSimulatorRow()])
-          }
-        />
-
-        <section className={styles.tableShell}>
-          <div className={styles.tableScroller}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Label</th>
-                  <th>Bedrooms</th>
-                  <th>Bathrooms</th>
-                  <th>Clean type</th>
-                  <th>List price (inc GST)</th>
-                  <th>Customer discount</th>
-                  <th>Referral type</th>
-                  <th>Referral value</th>
-                  <th>My take type</th>
-                  <th>My take value</th>
-                  <th>Fleet cost</th>
-                  <th>Customer payable</th>
-                  <th>GST</th>
-                  <th>Revenue ex GST</th>
-                  <th>Referral commission</th>
-                  <th>My take</th>
-                  <th>Left for partner + fleet</th>
-                  <th>Partner after fleet</th>
-                  <th>My take %</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {calculatedOwnerFirstRows.map((row) => (
-                  <tr key={row.id} className={styles[`row-${row.health}` as keyof typeof styles]}>
-                    <td>
-                      <input
-                        className={styles.textInput}
-                        value={row.label}
-                        onChange={(event) =>
-                          updateOwnerFirstRow(row.id, "label", event.target.value)
-                        }
-                      />
-                    </td>
-                    <td>
-                      <select
-                        className={styles.selectInput}
-                        value={row.bedrooms}
-                        onChange={(event) =>
-                          updateOwnerFirstRow(row.id, "bedrooms", event.target.value)
-                        }
-                      >
-                        {bedroomOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <select
-                        className={styles.selectInput}
-                        value={row.bathrooms}
-                        onChange={(event) =>
-                          updateOwnerFirstRow(row.id, "bathrooms", event.target.value)
-                        }
-                      >
-                        {bathroomOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <select
-                        className={styles.selectInput}
-                        value={row.cleanType}
-                        onChange={(event) =>
-                          updateOwnerFirstRow(row.id, "cleanType", event.target.value as CleanType)
-                        }
-                      >
-                        {cleanTypeOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <NumberInput
-                        value={row.listPriceIncGst}
-                        onChange={(value) =>
-                          updateOwnerFirstRow(row.id, "listPriceIncGst", value)
-                        }
-                      />
-                    </td>
-                    <td>
-                      <NumberInput
-                        value={row.customerDiscount}
-                        onChange={(value) =>
-                          updateOwnerFirstRow(row.id, "customerDiscount", value)
-                        }
-                      />
-                    </td>
-                    <td>
-                      <select
-                        className={styles.selectInput}
-                        value={row.referralCommissionType}
-                        onChange={(event) =>
-                          updateOwnerFirstRow(
-                            row.id,
-                            "referralCommissionType",
-                            event.target.value as ReferralCommissionType,
-                          )
-                        }
-                      >
-                        {commissionTypeOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <NumberInput
-                        value={row.referralCommissionValue}
-                        onChange={(value) =>
-                          updateOwnerFirstRow(row.id, "referralCommissionValue", value)
-                        }
-                      />
-                    </td>
-                    <td>
-                      <select
-                        className={styles.selectInput}
-                        value={row.myTakeType}
-                        onChange={(event) =>
-                          updateOwnerFirstRow(
-                            row.id,
-                            "myTakeType",
-                            event.target.value as ReferralCommissionType,
-                          )
-                        }
-                      >
-                        {commissionTypeOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <NumberInput
-                        value={row.myTakeValue}
-                        onChange={(value) => updateOwnerFirstRow(row.id, "myTakeValue", value)}
-                      />
-                    </td>
-                    <td>
-                      <NumberInput
-                        value={row.fleetCost}
-                        onChange={(value) => updateOwnerFirstRow(row.id, "fleetCost", value)}
-                      />
-                    </td>
-                    <td>{formatCurrency(row.customerPayable)}</td>
-                    <td>{formatCurrency(row.gstAmount)}</td>
-                    <td>{formatCurrency(row.revenueExGst)}</td>
-                    <td>
-                      {row.referralCommissionType === "percent"
-                        ? `${formatCurrency(row.referralCommission)} (${formatPercent(
-                            row.referralCommissionValue,
-                          )})`
-                        : formatCurrency(row.referralCommission)}
-                    </td>
-                    <td>
-                      {row.myTakeType === "percent"
-                        ? `${formatCurrency(row.myTakeAmount)} (${formatPercent(row.myTakeValue)})`
-                        : formatCurrency(row.myTakeAmount)}
-                    </td>
-                    <td>{formatCurrency(row.remainingForPartnerAndFleet)}</td>
-                    <td>{formatCurrency(row.partnerAfterFleet)}</td>
-                    <td>{formatPercent(row.marginPercent)}</td>
-                    <td>
-                      <DeleteButton onDelete={() =>
-                        setOwnerFirstRows((current) => current.filter((item) => item.id !== row.id))
-                      } label={row.label} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </section>
-    </div>
-  );
-}
-
-function SectionToolbar({
-  title,
-  description,
-  onReset,
-  onAdd,
-}: {
-  title: string;
-  description: string;
-  onReset: () => void;
-  onAdd: () => void;
-}) {
-  return (
-    <section className={styles.toolbar}>
-      <div>
-        <h2>{title}</h2>
-        <p>{description}</p>
-      </div>
-      <div className={styles.toolbarActions}>
-        <button type="button" className={styles.secondaryButton} onClick={onReset}>
-          Reset defaults
-        </button>
-        <button type="button" className={styles.primaryButton} onClick={onAdd}>
-          Add row
-        </button>
-      </div>
-    </section>
-  );
-}
 
 function SummaryCard({
   label,
   value,
-  tone = "default",
+  tone,
 }: {
   label: string;
   value: string;
-  tone?: "default" | "positive" | "negative";
+  tone?: "positive" | "negative";
 }) {
-  const toneClass =
-    tone === "positive"
-      ? styles["summary-positive"]
-      : tone === "negative"
-        ? styles["summary-negative"]
-        : "";
-
   return (
-    <article className={`${styles.summaryCard} ${toneClass}`.trim()}>
+    <div className={`${styles.summaryCard} ${tone ? styles[`summary-${tone}`] : ""}`}>
       <p>{label}</p>
       <strong>{value}</strong>
-    </article>
+    </div>
   );
 }
 
-function NumberInput({
+function NumInput({
   value,
   onChange,
+  min,
+  max,
+  placeholder,
 }: {
   value: number;
-  onChange: (value: number) => void;
+  onChange: (v: number) => void;
+  min?: number;
+  max?: number;
+  placeholder?: string;
 }) {
   return (
     <input
       type="number"
-      inputMode="decimal"
-      step="0.01"
       className={styles.numberInput}
       value={value}
-      onChange={(event) => onChange(parseNumberInput(event.target.value))}
+      min={min ?? 0}
+      max={max}
+      step={1}
+      placeholder={placeholder}
+      onChange={(e) => onChange(parseNum(e.target.value))}
     />
   );
 }
 
-function DeleteButton({
-  onDelete,
-  label,
-}: {
-  onDelete: () => void;
-  label: string;
-}) {
+export default function PricingSimulator() {
+  const [rows, setRows] = useState<SimulatorRowInput[]>(initialRows);
+
+  const calculatedRows = useMemo(() => rows.map(calculateRow), [rows]);
+  const summary = useMemo(() => calculateSummary(calculatedRows), [calculatedRows]);
+
+  const updateRow = <K extends keyof SimulatorRowInput>(
+    id: string,
+    field: K,
+    value: SimulatorRowInput[K],
+  ) => {
+    setRows((curr) =>
+      curr.map((row) => {
+        if (row.id !== id) return row;
+        const updated = { ...row, [field]: value };
+        if (field === "cleanCategory" && value === "eol" && !isValidEolConfig(updated.roomConfig)) {
+          updated.roomConfig = "2b2w";
+        }
+        return updated;
+      }),
+    );
+  };
+
+  const addRow = () => setRows((curr) => [...curr, emptyRow()]);
+  const deleteRow = (id: string) => setRows((curr) => curr.filter((r) => r.id !== id));
+  const resetRows = () => setRows(initialRows);
+
   return (
-    <button
-      type="button"
-      className={styles.deleteButton}
-      onClick={onDelete}
-      aria-label={`Delete ${label}`}
-    >
-      Delete
-    </button>
+    <div className={styles.pageShell}>
+      <div className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>内部工具 · 仅限员工</p>
+          <h1>报价<br />利润<br />模拟器</h1>
+          <p className={styles.lead}>
+            输入人工成本以外的各项参数，自动反推最终报价。
+            所有计算仅在浏览器本地运行，不保存任何数据。
+          </p>
+        </div>
+        <div className={styles.logicCard}>
+          <h2>计算逻辑</h2>
+          <ol>
+            <li>人工成本 ＝ 价格表 × 75%（固定，自动计算）</li>
+            <li>税前总额 ＝ 人工 ＋ 客户折扣 ＋ 介绍费 ＋ 我的利润 ＋ 老板利润</li>
+            <li>最终报价（含GST）＝ 税前总额 × 1.1</li>
+            <li>老板利润自动等于我的利润（50/50 分成）</li>
+            <li>介绍费百分比基于（人工 ＋ 折扣 ＋ 利润）计算</li>
+          </ol>
+        </div>
+      </div>
+
+      <div className={styles.sectionBlock}>
+        <div className={styles.toolbar}>
+          <div>
+            <h2>报价方案</h2>
+            <p>输入折扣、介绍费和期望利润，自动计算最终含GST报价。</p>
+          </div>
+          <div className={styles.toolbarActions}>
+            <button className={styles.secondaryButton} onClick={resetRows}>
+              重置默认
+            </button>
+            <button className={styles.primaryButton} onClick={addRow}>
+              ＋ 新增方案
+            </button>
+          </div>
+        </div>
+
+        {/* <div className={styles.summaryGrid}>
+          <SummaryCard label="人工成本合计" value={fmtCurrency(summary.laborCost)} />
+          <SummaryCard label="客户折扣合计" value={fmtCurrency(summary.customerDiscount)} />
+          <SummaryCard label="介绍费合计" value={fmtCurrency(summary.commission)} />
+          <SummaryCard
+            label="我的利润合计"
+            value={fmtCurrency(summary.myProfit)}
+            tone={summary.myProfit > 0 ? "positive" : undefined}
+          />
+          <SummaryCard
+            label="老板利润合计"
+            value={fmtCurrency(summary.bossProfit)}
+            tone={summary.bossProfit > 0 ? "positive" : undefined}
+          />
+          <SummaryCard label="GST 合计" value={fmtCurrency(summary.gstAmount)} />
+          <SummaryCard
+            label="最终报价合计"
+            value={fmtCurrency(summary.finalQuote)}
+            tone="positive"
+          />
+        </div> */}
+
+        <div className={styles.tableShell}>
+          <div className={styles.tableScroller}>
+            <table className={styles.table} style={{ minWidth: "1400px" }}>
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>户型</th>
+                  <th>清洁类型</th>
+                  <th>频率</th>
+                  <th>客户折扣</th>
+                  <th>介绍费类型</th>
+                  <th>介绍费</th>
+                  <th>我的利润</th>
+                  <th>人工成本(75%)</th>
+                  <th>老板利润</th>
+                  <th>税前总额</th>
+                  <th>最终报价（含GST）</th>
+                  <th>GST</th>
+                </tr>
+              </thead>
+              <tbody>
+                {calculatedRows.map((row) => {
+                  const isEol = row.cleanCategory === "eol";
+                  const roomOptions = isEol ? EOL_ROOM_CONFIGS : REGULAR_ROOM_CONFIGS;
+
+                  return (
+                    <tr key={row.id}>
+                      <td>
+                        <button
+                          className={styles.deleteButton}
+                          onClick={() => deleteRow(row.id)}
+                          aria-label="删除此行"
+                        >
+                          ✕
+                        </button>
+                      </td>
+
+                      <td>
+                        <select
+                          className={styles.selectInput}
+                          value={row.roomConfig}
+                          onChange={(e) =>
+                            updateRow(row.id, "roomConfig", e.target.value as SimulatorRowInput["roomConfig"])
+                          }
+                        >
+                          {roomOptions.map((o) => (
+                            <option key={o.value} value={o.value}>
+                              {o.label}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+
+                      <td>
+                        <select
+                          className={styles.selectInput}
+                          value={row.cleanCategory}
+                          onChange={(e) =>
+                            updateRow(row.id, "cleanCategory", e.target.value as SimulatorRowInput["cleanCategory"])
+                          }
+                        >
+                          <option value="regular">日常清洁</option>
+                          <option value="eol">退租清洁</option>
+                        </select>
+                      </td>
+
+                      <td>
+                        {isEol ? (
+                          <span className={styles.dimText}>—</span>
+                        ) : (
+                          <select
+                            className={styles.selectInput}
+                            value={row.frequency}
+                            onChange={(e) =>
+                              updateRow(row.id, "frequency", e.target.value as SimulatorRowInput["frequency"])
+                            }
+                          >
+                            {FREQUENCY_OPTIONS.map((o) => (
+                              <option key={o.value} value={o.value}>
+                                {o.label}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </td>
+
+                      <td>
+                        <NumInput
+                          value={row.customerDiscount}
+                          onChange={(v) => updateRow(row.id, "customerDiscount", v)}
+                          placeholder="0"
+                        />
+                      </td>
+
+                      <td>
+                        <select
+                          className={styles.selectInput}
+                          value={row.commissionType}
+                          onChange={(e) =>
+                            updateRow(row.id, "commissionType", e.target.value as CommissionType)
+                          }
+                        >
+                          {COMMISSION_TYPE_OPTIONS.map((o) => (
+                            <option key={o.value} value={o.value}>
+                              {o.label}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+
+                      <td>
+                        <NumInput
+                          value={row.commissionValue}
+                          onChange={(v) => updateRow(row.id, "commissionValue", v)}
+                          placeholder="0"
+                        />
+                      </td>
+
+                      <td>
+                        <NumInput
+                          value={row.myProfit}
+                          onChange={(v) => updateRow(row.id, "myProfit", v)}
+                          placeholder="0"
+                        />
+                      </td>
+
+                      <td className={styles.laborCostCell}>
+                        {fmtCurrency(row.laborCost)}
+                      </td>
+
+                      <td className={styles.netProfitCell}>
+                        {fmtCurrency(row.bossProfit)}
+                      </td>
+
+                      <td>{fmtCurrency(row.totalExGst)}</td>
+
+                      <td className={styles.netProfitCell}>
+                        {fmtCurrency(row.finalQuote)}
+                      </td>
+
+                      <td>{fmtCurrency(row.gstAmount)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

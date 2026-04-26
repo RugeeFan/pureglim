@@ -1,159 +1,92 @@
-import {
-  bathroomAddOn,
-  bathroomOptions,
-  bedroomOptions,
-  oneTimePrices,
-  quoteBasePrices,
-} from "../../app/data/constants";
+import type { CleanCategory, Frequency, RoomConfig } from "./pricingData";
 
-export type CleanType = "regular" | "first" | "deep";
-export type ReferralCommissionType = "fixed" | "percent";
+export type CommissionType = "fixed" | "percent";
 
-export type PricingSimulatorRowInput = {
+export type SimulatorRowInput = {
   id: string;
-  bedrooms: string;
-  bathrooms: string;
-  cleanType: CleanType;
-  label: string;
-  listPriceIncGst: number;
+  roomConfig: RoomConfig;
+  cleanCategory: CleanCategory;
+  frequency: Frequency;
   customerDiscount: number;
-  referralCommissionType: ReferralCommissionType;
-  referralCommissionValue: number;
-  fleetCost: number;
+  commissionType: CommissionType;
+  commissionValue: number;
+  myProfit: number;
 };
 
-export type PricingSimulatorOwnerFirstRowInput = PricingSimulatorRowInput & {
-  myTakeType: ReferralCommissionType;
-  myTakeValue: number;
-};
+const makeId = () =>
+  globalThis.crypto?.randomUUID?.() ??
+  `row-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-const rowId = (suffix: string) => `pricing-row-${suffix}`;
-
-const shortHomeLabel = (bedrooms: string, bathrooms: string) =>
-  `${bedrooms.replace(" Bedrooms", "B").replace(" Bedroom", "B")}${bathrooms
-    .replace(" Bathrooms", "B")
-    .replace(" Bathroom", "B")}`;
-
-const buildLabel = (bedrooms: string, bathrooms: string, cleanType: CleanType) => {
-  const typeLabel =
-    cleanType === "regular"
-      ? "Regular"
-      : cleanType === "first"
-        ? "First Clean"
-        : "Deep Clean";
-
-  return `${shortHomeLabel(bedrooms, bathrooms)} ${typeLabel}`;
-};
-
-const regularPrice = (bedrooms: string, bathrooms: string) =>
-  quoteBasePrices.regular[bedrooms] + bathroomAddOn.regular[bathrooms];
-
-const firstCleanPrice = (bedrooms: string, bathrooms: string) =>
-  oneTimePrices[bedrooms] + bathroomAddOn.regular[bathrooms];
-
-const deepCleanPrice = (bedrooms: string, bathrooms: string) =>
-  quoteBasePrices.deep[bedrooms] + bathroomAddOn.deep[bathrooms];
-
-export const defaultPricingSimulatorRows: PricingSimulatorRowInput[] = [
+export const defaultRows: SimulatorRowInput[] = [
   {
-    id: rowId("1"),
-    bedrooms: bedroomOptions[0],
-    bathrooms: bathroomOptions[0],
-    cleanType: "regular",
-    label: buildLabel(bedroomOptions[0], bathroomOptions[0], "regular"),
-    listPriceIncGst: regularPrice(bedroomOptions[0], bathroomOptions[0]),
-    customerDiscount: 20,
-    referralCommissionType: "fixed",
-    referralCommissionValue: 20,
-    fleetCost: 78,
-  },
-  {
-    id: rowId("2"),
-    bedrooms: bedroomOptions[1],
-    bathrooms: bathroomOptions[1],
-    cleanType: "regular",
-    label: buildLabel(bedroomOptions[1], bathroomOptions[1], "regular"),
-    listPriceIncGst: regularPrice(bedroomOptions[1], bathroomOptions[1]),
-    customerDiscount: 20,
-    referralCommissionType: "fixed",
-    referralCommissionValue: 20,
-    fleetCost: 108,
-  },
-  {
-    id: rowId("3"),
-    bedrooms: bedroomOptions[1],
-    bathrooms: bathroomOptions[1],
-    cleanType: "first",
-    label: buildLabel(bedroomOptions[1], bathroomOptions[1], "first"),
-    listPriceIncGst: firstCleanPrice(bedroomOptions[1], bathroomOptions[1]),
-    customerDiscount: 20,
-    referralCommissionType: "fixed",
-    referralCommissionValue: 20,
-    fleetCost: 128,
-  },
-  {
-    id: rowId("4"),
-    bedrooms: bedroomOptions[2],
-    bathrooms: bathroomOptions[1],
-    cleanType: "first",
-    label: buildLabel(bedroomOptions[2], bathroomOptions[1], "first"),
-    listPriceIncGst: firstCleanPrice(bedroomOptions[2], bathroomOptions[1]),
-    customerDiscount: 20,
-    referralCommissionType: "percent",
-    referralCommissionValue: 10,
-    fleetCost: 156,
-  },
-  {
-    id: rowId("5"),
-    bedrooms: bedroomOptions[1],
-    bathrooms: bathroomOptions[1],
-    cleanType: "deep",
-    label: buildLabel(bedroomOptions[1], bathroomOptions[1], "deep"),
-    listPriceIncGst: deepCleanPrice(bedroomOptions[1], bathroomOptions[1]),
+    id: "default-1",
+    roomConfig: "2b2w",
+    cleanCategory: "regular",
+    frequency: "fortnightly",
     customerDiscount: 0,
-    referralCommissionType: "fixed",
-    referralCommissionValue: 30,
-    fleetCost: 245,
+    commissionType: "fixed",
+    commissionValue: 0,
+    myProfit: 15,
   },
   {
-    id: rowId("6"),
-    bedrooms: bedroomOptions[3],
-    bathrooms: bathroomOptions[2],
-    cleanType: "deep",
-    label: buildLabel(bedroomOptions[3], bathroomOptions[2], "deep"),
-    listPriceIncGst: deepCleanPrice(bedroomOptions[3], bathroomOptions[2]),
+    id: "default-2",
+    roomConfig: "3b2w",
+    cleanCategory: "regular",
+    frequency: "monthly",
+    customerDiscount: 10,
+    commissionType: "fixed",
+    commissionValue: 15,
+    myProfit: 15,
+  },
+  {
+    id: "default-3",
+    roomConfig: "4b3w",
+    cleanCategory: "regular",
+    frequency: "one-off",
     customerDiscount: 20,
-    referralCommissionType: "percent",
-    referralCommissionValue: 10,
-    fleetCost: 355,
+    commissionType: "percent",
+    commissionValue: 5,
+    myProfit: 20,
+  },
+  {
+    id: "default-4",
+    roomConfig: "2b1w",
+    cleanCategory: "eol",
+    frequency: "fortnightly",
+    customerDiscount: 0,
+    commissionType: "fixed",
+    commissionValue: 0,
+    myProfit: 50,
+  },
+  {
+    id: "default-5",
+    roomConfig: "3b2w",
+    cleanCategory: "eol",
+    frequency: "fortnightly",
+    customerDiscount: 0,
+    commissionType: "fixed",
+    commissionValue: 20,
+    myProfit: 50,
+  },
+  {
+    id: "default-6",
+    roomConfig: "4b2w",
+    cleanCategory: "eol",
+    frequency: "fortnightly",
+    customerDiscount: 50,
+    commissionType: "percent",
+    commissionValue: 5,
+    myProfit: 50,
   },
 ];
 
-export const defaultOwnerFirstPricingSimulatorRows: PricingSimulatorOwnerFirstRowInput[] =
-  defaultPricingSimulatorRows.map((row, index) => ({
-    ...row,
-    myTakeType: index < 2 ? "fixed" : "percent",
-    myTakeValue: index < 2 ? 25 : 12,
-  }));
-
-export const emptyPricingSimulatorRow = (): PricingSimulatorRowInput => ({
-  id:
-    globalThis.crypto?.randomUUID?.() ??
-    `pricing-row-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-  bedrooms: bedroomOptions[1],
-  bathrooms: bathroomOptions[1],
-  cleanType: "regular",
-  label: buildLabel(bedroomOptions[1], bathroomOptions[1], "regular"),
-  listPriceIncGst: regularPrice(bedroomOptions[1], bathroomOptions[1]),
+export const emptyRow = (): SimulatorRowInput => ({
+  id: makeId(),
+  roomConfig: "2b2w",
+  cleanCategory: "regular",
+  frequency: "fortnightly",
   customerDiscount: 0,
-  referralCommissionType: "fixed",
-  referralCommissionValue: 0,
-  fleetCost: 0,
+  commissionType: "fixed",
+  commissionValue: 0,
+  myProfit: 15,
 });
-
-export const emptyOwnerFirstPricingSimulatorRow =
-  (): PricingSimulatorOwnerFirstRowInput => ({
-    ...emptyPricingSimulatorRow(),
-    myTakeType: "percent",
-    myTakeValue: 10,
-  });
