@@ -10,13 +10,24 @@ export const bathroomOptions = ["1 Bathroom", "2 Bathrooms", "3 Bathrooms", "4+ 
 export const frequencyOptions = ["Weekly", "Fortnightly", "Monthly", "One-time"];
 
 export const deepCleaningAddOns = [
-  { id: "carpet", label: "Carpet cleaning", price: 70 },
-  { id: "fridge", label: "Fridge cleaning", price: 35 },
-  { id: "microwave", label: "Microwave cleaning", price: 20 },
-  { id: "oven", label: "Oven cleaning", price: 65 },
-  { id: "laundry", label: "Laundry area", price: 30 },
-  { id: "windows", label: "Interior windows", price: 45 },
+  { id: "carpet_steam", label: "Carpet steam cleaning", price: 80, priceLabel: "+from $80" },
+  { id: "oven",         label: "Oven cleaning",         price: 20, priceLabel: "+from $20" },
+  { id: "fridge",       label: "Fridge cleaning",       price: 20, priceLabel: "+from $20" },
+  { id: "microwave",    label: "Microwave cleaning",    price: 20 },
+  { id: "stairs",       label: "Staircase cleaning",    price: 60 },
+  { id: "wall_stains",  label: "Wall stain removal",    price: 20, priceLabel: "+from $20" },
+  { id: "toilet_stains",label: "Toilet stain removal",  price: 20, priceLabel: "+from $20" },
+  { id: "pet_hair",     label: "Pet hair removal",      price: 20, priceLabel: "+from $20" },
+  { id: "mold",         label: "Mould removal",         price: 20, priceLabel: "+from $20" },
+  { id: "carpet_stains",label: "Carpet stain removal",  price: 25, priceLabel: "+from $25" },
+  { id: "blinds",       label: "Blind cleaning",        price: 15, priceLabel: "+from $15/blind" },
 ];
+
+export function getCarpetSteamPrice(bedrooms) {
+  if (bedrooms === "2 Bedrooms") return 120;
+  if (bedrooms === "3 Bedrooms" || bedrooms === "4 Bedrooms" || bedrooms === "5+ Bedrooms") return 150;
+  return 80;
+}
 
 // ─── Regular cleaning price table ─────────────────────────────────────────────
 // Combo keys: {bed}b{bath}w — prices are the minimum (inc. GST).
@@ -82,30 +93,30 @@ export function getValidBathroomOptions(bedrooms) {
 
 export const quoteBasePrices = {
   deep: {
-    "1 Bedroom":  340,
-    "2 Bedrooms": 430,
-    "3 Bedrooms": 520,
-    "4 Bedrooms": 620,
-    "5+ Bedrooms": 720,
+    "1 Bedroom":   280,
+    "2 Bedrooms":  320,
+    "3 Bedrooms":  360,
+    "4 Bedrooms":  530,
+    "5+ Bedrooms": 620,
   },
 };
 
 export const bathroomAddOn = {
   deep: {
     "1 Bathroom":  0,
-    "2 Bathrooms": 35,
-    "3 Bathrooms": 70,
-    "4+ Bathrooms": 105,
+    "2 Bathrooms": 80,
+    "3 Bathrooms": 120,
+    "4+ Bathrooms": 150,
   },
 };
 
 export const quoteBaseRanges = {
   deep: {
-    "1 Bedroom":  { low: 295, high: 375 },
-    "2 Bedrooms": { low: 380, high: 475 },
-    "3 Bedrooms": { low: 460, high: 575 },
-    "4 Bedrooms": { low: 550, high: 690 },
-    "5+ Bedrooms": { low: 640, high: 800 },
+    "1 Bedroom":   { low: 280, high: 340 },
+    "2 Bedrooms":  { low: 320, high: 390 },
+    "3 Bedrooms":  { low: 360, high: 440 },
+    "4 Bedrooms":  { low: 530, high: 640 },
+    "5+ Bedrooms": { low: 620, high: 750 },
   },
 };
 
@@ -170,7 +181,7 @@ export const services = [
     cardDescription:
       "For move-outs, inspections, or any time a home needs a proper reset.",
     badge: "Higher standard",
-    priceNote: "From $340",
+    priceNote: "From $280",
     tone: "premium",
     ctaLabel: "Select this service",
     learnMoreLabel: "View details",

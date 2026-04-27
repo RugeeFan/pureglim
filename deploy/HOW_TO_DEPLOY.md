@@ -113,6 +113,52 @@ TWILIO_AUTH_TOKEN=...
 TWILIO_VERIFY_SERVICE_SID=...
 DATABASE_URL=...
 SMTP_*=...
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=...      # 可选，未设置时地址栏自动回退为手动输入
+```
+
+## Google Places Autocomplete 配置
+
+预约表单地址栏使用 Google Places Autocomplete 自动补全。
+
+**如未设置 `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`**，表单自动回退为手动填写（街道、suburb、邮编、州），不影响预约提交。
+
+**如需启用 Google 自动补全**，需在 [Google Cloud Console](https://console.cloud.google.com/) 完成以下步骤：
+
+### 1. 启用 API
+
+在 API 库中启用：
+- **Maps JavaScript API**
+- **Places API**（旧版）或 **Places API (New)**
+
+### 2. 创建并限制 API Key
+
+创建一个专用 API Key，并设置限制：
+
+**应用程序限制 → HTTP 引用来源（网站）：**
+```
+http://localhost:*/*
+https://pureglim.com.au/*
+https://www.pureglim.com.au/*
+```
+
+**API 限制 → 仅允许以下 API：**
+- Maps JavaScript API
+- Places API / Places API (New)
+
+### 3. 设置账单预算提醒
+
+在 Billing → Budgets & alerts 中创建预算：
+- 建议第一档：AU$10（预警）
+- 建议第二档：AU$20（上限提醒）
+
+### 4. 将 key 加入生产 .env
+
+```bash
+ssh projects-server
+sudo nano /opt/pureglim/shared/.env
+# 添加：
+# NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_restricted_key_here
+/opt/pureglim/bin/restart.sh
 ```
 
 ## Prisma 迁移说明

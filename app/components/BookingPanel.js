@@ -8,11 +8,12 @@ import {
   CheckCircle2,
   LoaderCircle,
   MailCheck,
-  MessageCircle,
+  Mail,
   MessageSquare,
   Phone,
   ShieldCheck,
 } from "lucide-react";
+import AddressAutocomplete from "./AddressAutocomplete";
 import ScrollPicker from "./ScrollPicker";
 import AnimatedPrice from "./AnimatedPrice";
 import DateScrollPicker from "./DateScrollPicker";
@@ -24,6 +25,7 @@ import {
   bedroomOptions,
   deepCleaningAddOns,
   frequencyOptions,
+  getCarpetSteamPrice,
   getRegularPrice,
   getValidBathroomOptions,
   REGULAR_PRICE_BUFFER,
@@ -101,6 +103,7 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
   });
   const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showAddOnsModal, setShowAddOnsModal] = useState(false);
 
   const selectedService = selectedServiceId ? getServiceById(selectedServiceId) : null;
   const steps = getSteps(selectedServiceId);
@@ -162,6 +165,7 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
       quoteBasePrices.deep[form.bedrooms] +
       bathroomAddOn.deep[form.bathrooms];
     const addOnsTotal = form.addOns.reduce((total, addOnId) => {
+      if (addOnId === "carpet_steam") return total + getCarpetSteamPrice(form.bedrooms);
       const addOn = deepCleaningAddOns.find((item) => item.id === addOnId);
       return total + (addOn?.price ?? 0);
     }, 0);
@@ -212,6 +216,7 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
     const r = quoteBaseRanges.deep[form.bedrooms];
     const extra = bathroomAddOn.deep[form.bathrooms];
     const addOnsTotal = form.addOns.reduce((sum, id) => {
+      if (id === "carpet_steam") return sum + getCarpetSteamPrice(form.bedrooms);
       return sum + (deepCleaningAddOns.find((a) => a.id === id)?.price ?? 0);
     }, 0);
     return { low: r.low + extra + addOnsTotal, high: r.high + extra + addOnsTotal };
@@ -574,17 +579,11 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
   useEffect(() => {
     if (!isOpen || !panelRef.current) return;
 
-    const panel = panelRef.current;
-    const shouldAnimate = panel.scrollTop > 24;
-    const frame = requestAnimationFrame(() => {
-      panel.scrollTo({
-        top: 0,
-        behavior: shouldAnimate ? "smooth" : "auto",
-      });
-    });
-
-    return () => cancelAnimationFrame(frame);
-  }, [displayStepIndex, isOpen, selectedServiceId]);
+    panelRef.current.scrollTop = 0;
+    if (typeof window !== "undefined" && window.scrollY > 0) {
+      window.scrollTo(0, 0);
+    }
+  }, [stepIndex, isOpen]);
 
   useEffect(() => {
     return () => {
@@ -855,22 +854,6 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                         </div>
                       </div>
 
-                      <div className="quote-group quote-group-wide">
-                        <span>Add-ons</span>
-                        <div className="add-on-grid">
-                          {deepCleaningAddOns.map((item) => (
-                            <button
-                              className={`add-on-card ${form.addOns.includes(item.id) ? "selected" : ""}`}
-                              key={item.id}
-                              onClick={() => toggleAddOn(item.id)}
-                              type="button"
-                            >
-                              <strong>{item.label}</strong>
-                              <span>+${item.price}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
                     </div>
                   )}
 
@@ -879,16 +862,28 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                       <div className="quote-estimate-layout">
                         <div className="quote-estimate-left">
                           <span className="quote-estimate-label">Estimate</span>
-                          <div className="quote-estimate-range">
-                            <AnimatedPrice amount={quoteRange.low} />
-                            <span className="quote-estimate-sep">–</span>
-                            <AnimatedPrice amount={quoteRange.high} />
-                          </div>
+                          {selectedServiceId === "deep" ? (
+                            <div className="quote-estimate-range">
+                              <span className="quote-estimate-from">From</span>
+                              <AnimatedPrice amount={quoteRange.low} />
+                            </div>
+                          ) : (
+                            <div className="quote-estimate-range">
+                              <AnimatedPrice amount={quoteRange.low} />
+                              <span className="quote-estimate-sep">–</span>
+                              <AnimatedPrice amount={quoteRange.high} />
+                            </div>
+                          )}
                           {pricingSummary?.discountAmount ? (
                             <p className="quote-live-detail">Referral -{`$${pricingSummary.discountAmount}`} · first clean only</p>
                           ) : null}
-                          {quote?.addOnsTotal > 0 && (
-                            <p className="quote-live-detail">Includes add-ons ${quote.addOnsTotal}</p>
+                          {selectedServiceId === "deep" && (
+                            <p className="quote-live-detail">
+                              Extra services available.{" "}
+                              <button type="button" className="quote-details-link" onClick={() => setShowAddOnsModal(true)}>
+                                View add-ons & pricing
+                              </button>
+                            </p>
                           )}
                           {selectedServiceId === "regular" && form.bathrooms && CLEANING_TIME_ESTIMATES[form.bathrooms] && (
                             <p className="quote-live-detail">{CLEANING_TIME_ESTIMATES[form.bathrooms]} with 2 cleaners</p>
@@ -938,7 +933,7 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                     </div>
                   )}
 
-                  {selectedService.id !== "commercial" && (
+                  {selectedService.id !== "commercial" && selectedService.id !== "deep" && (
                     <div className="quote-referral-section">
                       <div className="referral-input-row">
                         <input
@@ -1042,16 +1037,12 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                       />
                     </label>
 
-                    <label className={`field ${showValidation && !form.address.trim() ? "has-error" : ""}`}>
-                      <span>Address</span>
-                      <input
-                        name="address"
-                        onChange={(event) => updateField("address", event.target.value)}
-                        placeholder="Property or site address"
-                        type="text"
-                        value={form.address}
-                      />
-                    </label>
+                    <AddressAutocomplete
+                      value={form.address}
+                      onChange={(formatted) => updateField("address", formatted)}
+                      showValidation={showValidation}
+                      ready={isOpen && currentStep === "contact"}
+                    />
 
                     <div className="schedule-section field-wide">
                       <div className="schedule-row schedule-row-mobile-stack">
@@ -1094,11 +1085,16 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                   <div className="review-grid">
                     <div className="review-card">
                       <span className="review-section-label">Service</span>
-                      <span className="review-section-value">{selectedService.title}</span>
+                      <span className="review-section-value">
+                        {selectedService.id === "regular"
+                          ? (form.frequency === "One-time" ? "One Time Cleaning" : "Regular Cleaning")
+                          : selectedService.title}
+                      </span>
                       {quoteRange && (
                         <span className="review-price">
-                          ${quoteRange.low}–${quoteRange.high}
-                          {pricingSummary?.discountAmount ? ` (referral -$${pricingSummary.discountAmount}, first clean)` : ""}
+                          {selectedService.id === "deep"
+                            ? `From $${quoteRange.low}`
+                            : `$${quoteRange.low}–$${quoteRange.high}`}
                         </span>
                       )}
                       {selectedService.id === "commercial" && (
@@ -1125,7 +1121,7 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                             .filter((item) => form.addOns.includes(item.id))
                             .map((item) => (
                               <span key={item.id} className="review-section-value">
-                                {item.label} +${item.price}
+                                {item.label} {item.priceLabel ?? `+$${item.price}`}
                               </span>
                             ))}
                         </>
@@ -1133,13 +1129,33 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                     </div>
 
                     {pricingSummary?.discountAmount ? (
-                      <div className="review-card">
+                      <div className="review-card review-card-wide review-card-deal">
                         <span className="review-section-label">Discount</span>
-                        <span className="review-section-value">{pricingSummary.code}</span>
-                        <span className="review-section-value">-${pricingSummary.discountAmount}</span>
-                        <span className="review-section-value">
-                          Final {`$${pricingSummary.finalAmount}`}
-                        </span>
+                        {selectedService.id === "regular" && !quoteRange?.isOneTime && quoteRange?.firstClean ? (
+                          <div className="review-deal-inner">
+                            <span className="review-deal-code">{pricingSummary.code}</span>
+                            <div className="review-deal-pricing">
+                              <span className="review-deal-first-visit">First visit</span>
+                              <span className="review-deal-strike">
+                                ${quoteRange.firstClean.low}–${quoteRange.firstClean.high}
+                              </span>
+                              <div className="review-deal-bottom">
+                                <span className="review-deal-price">
+                                  ${Math.max(0, quoteRange.firstClean.low - pricingSummary.discountAmount)}–${Math.max(0, quoteRange.firstClean.high - pricingSummary.discountAmount)}
+                                </span>
+                                <span className="review-deal-badge">Save ${pricingSummary.discountAmount}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="review-deal-inner">
+                            <span className="review-deal-code">{pricingSummary.code}</span>
+                            <div className="review-deal-bottom">
+                              <span className="review-deal-price">${pricingSummary.finalAmount}</span>
+                              <span className="review-deal-badge">Save ${pricingSummary.discountAmount}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ) : null}
 
@@ -1201,14 +1217,20 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                     <div className="result-summary-top">
                       {selectedService.id !== "commercial" && quoteRange && (
                         <strong className="result-summary-price">
-                          ${quoteRange.low}–${quoteRange.high}
+                          {selectedService.id === "deep"
+                            ? `From $${quoteRange.low}`
+                            : `$${quoteRange.low}–$${quoteRange.high}`}
                         </strong>
                       )}
                       {selectedService.id === "commercial" && (
                         <strong className="result-summary-price result-summary-price-sm">On-site quote</strong>
                       )}
                       <div className="result-chip-row">
-                        <span>{selectedService.title}</span>
+                        <span>
+                          {selectedService.id === "regular"
+                            ? (form.frequency === "One-time" ? "One Time Cleaning" : "Regular Cleaning")
+                            : selectedService.title}
+                        </span>
                         {form.bedrooms && <span>{form.bedrooms}</span>}
                         {form.bathrooms && <span>{form.bathrooms}</span>}
                         {selectedService.id === "regular" && form.frequency && <span>{form.frequency}</span>}
@@ -1221,9 +1243,31 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                         {pricingSummary?.code ? <span>{pricingSummary.code}</span> : null}
                       </div>
                     </div>
-                    {pricingSummary?.discountAmount ? (
-                      <div className="result-summary-meta">
-                        <span>Referral -{`$${pricingSummary.discountAmount}`} · first clean only</span>
+                    {(selectedService.id === "regular" && !quoteRange?.isOneTime && quoteRange?.firstClean) || pricingSummary?.discountAmount ? (
+                      <div className="result-deal-row">
+                        <span className="result-deal-first-visit">First visit</span>
+                        {selectedService.id === "regular" && !quoteRange?.isOneTime && quoteRange?.firstClean ? (
+                          pricingSummary?.discountAmount ? (
+                            <>
+                              <span className="result-deal-strike">
+                                ${quoteRange.firstClean.low}–${quoteRange.firstClean.high}
+                              </span>
+                              <span className="result-deal-price">
+                                ${Math.max(0, quoteRange.firstClean.low - pricingSummary.discountAmount)}–${Math.max(0, quoteRange.firstClean.high - pricingSummary.discountAmount)}
+                              </span>
+                              <span className="review-deal-badge">Save ${pricingSummary.discountAmount}</span>
+                            </>
+                          ) : (
+                            <span className="result-deal-price">
+                              ${quoteRange.firstClean.low}–${quoteRange.firstClean.high}
+                            </span>
+                          )
+                        ) : (
+                          <>
+                            <span className="result-deal-price">${pricingSummary.finalAmount}</span>
+                            <span className="review-deal-badge">Save ${pricingSummary.discountAmount}</span>
+                          </>
+                        )}
                       </div>
                     ) : null}
                     <div className="result-chip-row result-chip-row-muted">
@@ -1231,18 +1275,27 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                       <span>{form.phone}</span>
                       <span>{form.email}</span>
                       <span>{form.address}</span>
+                      {form.preferredDate && (
+                        <span>
+                          {(() => {
+                            const [y, m, d] = form.preferredDate.split("-").map(Number);
+                            return new Intl.DateTimeFormat("en-AU", {
+                              weekday: "short", day: "numeric", month: "short",
+                            }).format(new Date(y, m - 1, d));
+                          })()}
+                        </span>
+                      )}
+                      {form.preferredTime && <span>{form.preferredTime}</span>}
                     </div>
                   </div>
 
                   <div className="result-contact-row">
                     <a
                       className="result-contact-btn"
-                      href="https://wa.me/?text=Hello%20PureGlim"
-                      rel="noreferrer"
-                      target="_blank"
+                      href="mailto:pureglimsydney@gmail.com"
                     >
-                      <MessageCircle size={16} />
-                      WhatsApp
+                      <Mail size={16} />
+                      Email
                     </a>
                     <a
                       className="result-contact-btn"
@@ -1296,6 +1349,25 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
           </div>
         </div>
       </div>
+      {showAddOnsModal && createPortal(
+        <div className="quote-modal-overlay" onClick={() => setShowAddOnsModal(false)}>
+          <div className="quote-modal quote-modal-addons" onClick={(e) => e.stopPropagation()}>
+            <button className="quote-modal-close" onClick={() => setShowAddOnsModal(false)} type="button">✕</button>
+            <h3>Add-ons & extras</h3>
+            <p className="quote-modal-addons-note">These are optional extras on top of the base price. Final pricing is confirmed with you before work begins.</p>
+            <div className="quote-modal-addons-grid">
+              {deepCleaningAddOns.map((item) => (
+                <div key={item.id} className="quote-modal-addon-row">
+                  <span className="quote-modal-addon-label">{item.label}</span>
+                  <span className="quote-modal-addon-price">{item.priceLabel ?? `+$${item.price}`}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       {showDetailsModal && createPortal(
         <div className="quote-modal-overlay" onClick={() => setShowDetailsModal(false)}>
           <div className="quote-modal" onClick={(e) => e.stopPropagation()}>
