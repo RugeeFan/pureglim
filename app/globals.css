@@ -151,6 +151,15 @@ button {
   justify-content: center;
 }
 
+.topbar-utility {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-left: auto;
+  flex-wrap: nowrap;
+}
+
 .contact-link,
 .nav-link-button {
   color: var(--muted);
@@ -210,6 +219,37 @@ button {
   position: relative;
   display: flex;
   align-items: flex-end;
+}
+
+.hero-referral-banner {
+  position: static;
+  z-index: 2;
+  display: grid;
+  gap: 2px;
+  width: min(100%, 320px);
+  padding: 11px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(12, 25, 22, 0.44);
+  box-shadow: 0 14px 36px rgba(8, 17, 15, 0.16);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.hero-referral-banner.is-success {
+  border-color: rgba(140, 255, 198, 0.22);
+}
+
+.hero-referral-banner-title {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: rgba(245, 251, 248, 0.96);
+}
+
+.hero-referral-banner-copy {
+  font-size: 0.74rem;
+  line-height: 1.4;
+  color: rgba(245, 251, 248, 0.68);
 }
 
 .hero-content {
@@ -2165,6 +2205,17 @@ a.contact-card:hover {
     overflow: hidden;
   }
 
+  .topbar-utility {
+    width: 100%;
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+
+  .hero-referral-banner {
+    width: fit-content;
+    max-width: min(100%, 420px);
+  }
+
   .content-stage {
     align-items: flex-end;
   }
@@ -2353,6 +2404,10 @@ a.contact-card:hover {
     padding-bottom: 8px;
   }
 
+  .topbar-utility {
+    gap: 10px;
+  }
+
   .contact-link {
     display: none;
   }
@@ -2375,6 +2430,13 @@ a.contact-card:hover {
   .content-stage > .hero-content {
     position: absolute;
     inset: 0;
+  }
+
+  .hero-referral-banner {
+    width: 100%;
+    max-width: none;
+    padding: 10px 12px;
+    border-radius: 16px;
   }
 
   .hero-copy {
@@ -2402,6 +2464,15 @@ a.contact-card:hover {
     max-width: 13.5rem;
     font-size: 0.9rem;
     line-height: 1.42;
+  }
+
+  .referral-input-row {
+    grid-template-columns: 1fr;
+  }
+
+  .referral-input-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .hero-actions-wrap {
@@ -4082,18 +4153,37 @@ a.contact-card:hover {
   margin-top: 20px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+}
+
+.quote-referral-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.quote-referral-copy span {
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(245, 251, 248, 0.6);
+}
+
+.quote-referral-copy p {
+  margin: 0;
+  max-width: 620px;
+  color: rgba(245, 251, 248, 0.68);
+  line-height: 1.6;
+  font-size: 0.9rem;
 }
 
 .referral-input-row {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 14px;
-  flex-wrap: wrap;
 }
 
 .referral-input-row input {
-  flex: 0 0 auto;
+  min-width: 0;
 }
 
 .discount-applied-inline {
@@ -4101,6 +4191,42 @@ a.contact-card:hover {
   color: #6ee7b7;
   font-weight: 500;
   white-space: nowrap;
+}
+
+.referral-input-actions {
+  display: inline-flex;
+  gap: 10px;
+}
+
+.referral-inline-button {
+  min-height: 50px;
+  padding: 0 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--text);
+  font-size: 0.92rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.referral-inline-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.referral-inline-button.is-secondary {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.referral-inline-button:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
 }
 
 .quote-referral-section input {
@@ -4498,4 +4624,3 @@ a.contact-card:hover {
 .pac-icon-marker {
   display: none !important;
 }
-

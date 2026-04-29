@@ -20,6 +20,15 @@ import DateScrollPicker from "./DateScrollPicker";
 import TimeDropdown from "./TimeDropdown";
 import SuccessAnimation from "./SuccessAnimation";
 import {
+  clearReferralAttribution,
+  persistReferralAttribution,
+  readReferralAttribution,
+} from "../../lib/referral/browser";
+import {
+  isReferralDiscountEligibleService,
+  normalizeReferralCode,
+} from "../../lib/referral/shared";
+import {
   bathroomAddOn,
   bathroomOptions,
   bedroomOptions,
@@ -78,6 +87,19 @@ function getServiceSubmissionType(serviceId) {
   return serviceId || "regular";
 }
 
+function getDefaultDiscountState() {
+  return {
+    status: "idle",
+    code: "",
+    referrerName: "",
+    discountAmount: 0,
+    originalAmount: null,
+    finalAmount: null,
+    message: "",
+    source: "",
+  };
+}
+
 export default function BookingPanel({ isOpen, onClose, onGoHome, initialServiceId = null }) {
   const panelRef = useRef(null);
   const [selectedServiceId, setSelectedServiceId] = useState(initialServiceId);
@@ -91,16 +113,9 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
   const [submissionResult, setSubmissionResult] = useState(null);
   const stepTimerRef = useRef(null);
   const bookingBodyRef = useRef(null);
+  const autoReferralCodeRef = useRef("");
   const [form, setForm] = useState(getInitialFormState);
-  const [discountState, setDiscountState] = useState({
-    status: "idle",
-    code: "",
-    partnerName: "",
-    discountAmount: 0,
-    originalAmount: null,
-    finalAmount: null,
-    message: "",
-  });
+  const [discountState, setDiscountState] = useState(getDefaultDiscountState);
   const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showAddOnsModal, setShowAddOnsModal] = useState(false);
@@ -123,15 +138,8 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
     setSubmitError("");
     setSubmissionResult(null);
     setForm(getInitialFormState());
-    setDiscountState({
-      status: "idle",
-      code: "",
-      partnerName: "",
-      discountAmount: 0,
-      originalAmount: null,
-      finalAmount: null,
-      message: "",
-    });
+    autoReferralCodeRef.current = "";
+    setDiscountState(getDefaultDiscountState());
   }, [initialServiceId, isOpen]);
 
   const quote = useMemo(() => {
@@ -190,8 +198,8 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
       discountAmount,
       finalAmount,
       code: discountState.status === "valid" ? discountState.code : "",
-      partnerName:
-        discountState.status === "valid" ? discountState.partnerName : "",
+      referrerName:
+        discountState.status === "valid" ? discountState.referrerName : "",
     };
   }, [discountState, quote]);
 
@@ -225,6 +233,9 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
   const validBathroomOptions = selectedServiceId === "regular"
     ? getValidBathroomOptions(form.bedrooms)
     : bathroomOptions;
+  const supportsReferralDiscount = isReferralDiscountEligibleService(
+    getServiceSubmissionType(selectedServiceId),
+  );
 
   function updateField(name, value) {
     setForm((current) => ({ ...current, [name]: value }));
@@ -246,20 +257,12 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
   function updateDiscountCode(value) {
     setForm((current) => ({ ...current, discountCode: value }));
     setDiscountState((current) => {
-      const normalized = value.trim().toUpperCase().replace(/\s+/g, "");
+      const normalized = normalizeReferralCode(value);
       if (current.status === "valid" && current.code === normalized) {
         return current;
       }
 
-      return {
-        status: "idle",
-        code: "",
-        partnerName: "",
-        discountAmount: 0,
-        originalAmount: null,
-        finalAmount: null,
-        message: "",
-      };
+      return getDefaultDiscountState();
     });
   }
 
@@ -276,30 +279,33 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
     setSelectedServiceId(serviceId);
     setShowValidation(false);
     setSubmitError("");
-    setDiscountState({
-      status: "idle",
-      code: "",
-      partnerName: "",
-      discountAmount: 0,
-      originalAmount: null,
-      finalAmount: null,
-      message: "",
-    });
+    autoReferralCodeRef.current = "";
+    setDiscountState(getDefaultDiscountState());
     setForm((current) => ({ ...current, discountCode: "" }));
     setStepIndex(jumpToDetails ? 1 : 0);
     setDisplayStepIndex(jumpToDetails ? 1 : 0);
   }
 
-  async function applyDiscountCode() {
-    const code = form.discountCode.trim();
+  function clearSelectedReferral({ preserveStorage = false } = {}) {
+    if (!preserveStorage) {
+      clearReferralAttribution();
+    }
+    autoReferralCodeRef.current = "";
+    setForm((current) => ({ ...current, discountCode: "" }));
+    setDiscountState(getDefaultDiscountState());
+  }
+
+  async function applyDiscountCode({
+    codeOverride,
+    source = "manual",
+    silentInvalid = false,
+    persistOnSuccess = true,
+  } = {}) {
+    const code = normalizeReferralCode(codeOverride ?? form.discountCode);
     if (!code || !quote) {
       setDiscountState({
+        ...getDefaultDiscountState(),
         status: "invalid",
-        code: "",
-        partnerName: "",
-        discountAmount: 0,
-        originalAmount: null,
-        finalAmount: null,
         message: "Enter a referral code to apply a discount.",
       });
       return false;
@@ -333,31 +339,84 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
       setDiscountState({
         status: "valid",
         code: result.code,
-        partnerName: result.referrerName,
+        referrerName: result.referrerName,
         discountAmount: result.discountAmount,
         originalAmount: result.originalAmount,
         finalAmount: result.finalAmount,
-        message: `✓ ${result.code} applied — $${result.discountAmount} off your first clean.`,
+        message:
+          source === "auto"
+            ? "Referral discount applied"
+            : `✓ ${result.code} applied — $${result.discountAmount} off your first clean.`,
+        source,
       });
+      autoReferralCodeRef.current = result.code;
+      if (persistOnSuccess) {
+        persistReferralAttribution({
+          code: result.code,
+          referrerName: result.referrerName,
+        });
+      }
       return true;
     } catch (error) {
-      setDiscountState({
-        status: "invalid",
-        code: "",
-        partnerName: "",
-        discountAmount: 0,
-        originalAmount: null,
-        finalAmount: null,
-        message:
-          error instanceof Error
-            ? error.message
-            : "That referral code doesn't exist. Please double-check it.",
-      });
+      const message =
+        error instanceof Error
+          ? error.message
+          : "That referral code doesn't exist. Please double-check it.";
+
+      if (!silentInvalid) {
+        setDiscountState({
+          ...getDefaultDiscountState(),
+          status: "invalid",
+          message,
+        });
+      } else {
+        setDiscountState(getDefaultDiscountState());
+      }
+
+      if (source === "auto" || source === "manual") {
+        clearReferralAttribution();
+      }
+      autoReferralCodeRef.current = "";
       return false;
     } finally {
       setIsApplyingDiscount(false);
     }
   }
+
+  useEffect(() => {
+    if (!isOpen || !supportsReferralDiscount || !quote?.amount) return;
+
+    const storedReferral = readReferralAttribution();
+    if (!storedReferral?.code) return;
+
+    const currentCode = normalizeReferralCode(form.discountCode);
+    if (currentCode && currentCode !== storedReferral.code) return;
+
+    if (
+      discountState.status === "valid" &&
+      discountState.code === storedReferral.code
+    ) {
+      autoReferralCodeRef.current = storedReferral.code;
+      return;
+    }
+
+    if (autoReferralCodeRef.current === storedReferral.code) return;
+
+    autoReferralCodeRef.current = storedReferral.code;
+    void applyDiscountCode({
+      codeOverride: storedReferral.code,
+      source: "auto",
+      silentInvalid: true,
+      persistOnSuccess: true,
+    });
+  }, [
+    discountState.code,
+    discountState.status,
+    form.discountCode,
+    isOpen,
+    quote?.amount,
+    supportsReferralDiscount,
+  ]);
 
   function canContinue() {
     if (currentStep === "select") {
@@ -401,13 +460,6 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
       return selectedServiceId === "commercial" ? "Request a site visit" : "See my estimate";
     }
     if (currentStep === "quote") {
-      if (
-        selectedServiceId !== "commercial" &&
-        form.discountCode.trim() &&
-        discountState.status !== "valid"
-      ) {
-        return isApplyingDiscount ? "Checking…" : "Verify referral code";
-      }
       return selectedService?.quote.nextLabel ?? "Next";
     }
     if (currentStep === "contact") return selectedService?.quote.nextLabel ?? "Review";
@@ -424,6 +476,18 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
 
     setIsSubmitting(true);
     setSubmitError("");
+    let submittedReferralCode = supportsReferralDiscount
+      ? normalizeReferralCode(form.discountCode)
+      : "";
+
+    if (supportsReferralDiscount && submittedReferralCode && discountState.status !== "valid") {
+      await applyDiscountCode({
+        codeOverride: submittedReferralCode,
+        source: "manual",
+        silentInvalid: true,
+        persistOnSuccess: true,
+      });
+    }
 
     const payload = {
       serviceType: getServiceSubmissionType(selectedService.id),
@@ -439,10 +503,7 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
       siteType: selectedService.id === "commercial" ? form.siteType.trim() : "",
       siteSchedule: selectedService.id === "commercial" ? form.siteSchedule.trim() : "",
       notes: form.notes.trim(),
-      discountCode:
-        selectedService.id !== "commercial" && discountState.status === "valid"
-          ? discountState.code
-          : "",
+      discountCode: submittedReferralCode,
       preferredDate: form.preferredDate || "",
       preferredTime: form.preferredTime || "",
       estimatedPrice: quote?.amount ?? null,
@@ -487,16 +548,6 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
 
     if (currentStep === "review") {
       await submitRequest();
-      return;
-    }
-
-    if (
-      currentStep === "quote" &&
-      selectedServiceId !== "commercial" &&
-      form.discountCode.trim() &&
-      discountState.status !== "valid"
-    ) {
-      await applyDiscountCode();
       return;
     }
 
@@ -933,7 +984,7 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                     </div>
                   )}
 
-                  {selectedService.id !== "commercial" && selectedService.id !== "deep" && (
+                  {supportsReferralDiscount && (
                     <div className="quote-referral-section">
                       <div className="referral-input-row">
                         <input
