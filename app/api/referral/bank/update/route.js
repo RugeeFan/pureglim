@@ -2,12 +2,21 @@ import { NextResponse } from "next/server";
 import { getReferrerSessionFromRequest } from "../../../../../lib/auth/referrerSession";
 import { normalizeBsb, updateReferrerBankDetails } from "../../../../../lib/services/referrers";
 import { referrerBankDetailsSchema } from "../../../../../lib/validation/referrerAuth";
+import { reserveActionRateLimit } from "../../../../../lib/services/smsRateLimit";
 
 export async function PUT(request) {
   try {
     const session = await getReferrerSessionFromRequest(request);
     if (!session.valid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const limit = await reserveActionRateLimit("bank", session.payload.sub);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: `Please wait ${limit.secondsLeft}s before trying again.` },
+        { status: 429 },
+      );
     }
 
     const body = await request.json();

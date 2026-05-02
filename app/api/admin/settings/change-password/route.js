@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSessionFromRequest } from "../../../../../lib/auth/session";
 import { verifyAdminPassword, setAdminPassword } from "../../../../../lib/auth/adminPassword";
+import { adminPasswordChangeSchema } from "../../../../../lib/validation/referrerAuth";
 
 function sameOrigin(request) {
   // Defense-in-depth on top of SameSite=Lax cookie. Modern browsers don't
@@ -30,20 +31,15 @@ export async function POST(request) {
       return NextResponse.json({ error: "Unauthorised." }, { status: 403 });
     }
 
-    const body = await request.json();
-    const { currentPassword, newPassword, confirmPassword } = body ?? {};
+    const body = await request.json().catch(() => null);
+    const parsed = adminPasswordChangeSchema.safeParse(body);
 
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      return NextResponse.json({ error: "All fields are required." }, { status: 400 });
+    if (!parsed.success) {
+      const firstError = parsed.error.errors[0]?.message || "Invalid request.";
+      return NextResponse.json({ error: firstError }, { status: 400 });
     }
 
-    if (newPassword.length < 8) {
-      return NextResponse.json({ error: "New password must be at least 8 characters." }, { status: 400 });
-    }
-
-    if (newPassword !== confirmPassword) {
-      return NextResponse.json({ error: "New passwords do not match." }, { status: 400 });
-    }
+    const { currentPassword, newPassword } = parsed.data;
 
     const currentOk = await verifyAdminPassword(currentPassword);
     if (!currentOk) {
@@ -53,7 +49,8 @@ export async function POST(request) {
     await setAdminPassword(newPassword);
 
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    console.error("[admin/settings/change-password] Unexpected error:", error);
     return NextResponse.json({ error: "An unexpected error occurred." }, { status: 500 });
   }
 }

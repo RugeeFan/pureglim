@@ -10,7 +10,10 @@ import { startPhoneVerification } from "../../../../../lib/services/twilioVerify
 import { hashPassword } from "../../../../../lib/utils/password";
 import { getClientIp } from "../../../../../lib/utils/clientIp";
 import { referrerAuthStartSchema } from "../../../../../lib/validation/referrerAuth";
-import { buildAuthCookieOptions as buildCookieOptions } from "../../../../../lib/auth/cookies";
+import {
+  buildAuthCookieOptions as buildCookieOptions,
+  REFERRER_PENDING_SESSION_MAX_AGE,
+} from "../../../../../lib/auth/cookies";
 
 export async function POST(request) {
   try {
@@ -109,7 +112,7 @@ export async function POST(request) {
     response.cookies.set(
       REFERRER_PENDING_COOKIE_NAME,
       pendingToken,
-      buildCookieOptions(60 * 10),
+      buildCookieOptions(REFERRER_PENDING_SESSION_MAX_AGE),
     );
 
     return response;

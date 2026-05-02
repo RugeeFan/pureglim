@@ -4,3 +4,10 @@ npm-debug.log*
 .env
 .env.*
 !.env.example
+
+# OS / IDE / build artifacts
+.DS_Store
+*.tsbuildinfo
+
+# claude-mem session context (auto-generated)
+AGENTS.md

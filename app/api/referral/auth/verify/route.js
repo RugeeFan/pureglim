@@ -15,7 +15,7 @@ import {
 import { verifyPhoneCode } from "../../../../../lib/services/twilioVerify";
 import { referrerAuthVerifySchema } from "../../../../../lib/validation/referrerAuth";
 
-import { buildAuthCookieOptions as buildCookieOptions } from "../../../../../lib/auth/cookies";
+import { buildAuthCookieOptions as buildCookieOptions, REFERRER_SESSION_MAX_AGE } from "../../../../../lib/auth/cookies";
 
 export async function POST(request) {
   try {
@@ -120,7 +120,7 @@ export async function POST(request) {
     response.cookies.set(
       REFERRER_COOKIE_NAME,
       sessionToken,
-      buildCookieOptions(60 * 60 * 24 * 14),
+      buildCookieOptions(REFERRER_SESSION_MAX_AGE),
     );
     response.cookies.set(REFERRER_PENDING_COOKIE_NAME, "", buildCookieOptions(0));
 

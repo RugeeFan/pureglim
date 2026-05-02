@@ -10,7 +10,7 @@ import {
 import { getClientIp } from "../../../../../lib/utils/clientIp";
 import { referrerAuthPasswordLoginSchema } from "../../../../../lib/validation/referrerAuth";
 
-import { buildAuthCookieOptions as buildCookieOptions } from "../../../../../lib/auth/cookies";
+import { buildAuthCookieOptions as buildCookieOptions, REFERRER_SESSION_MAX_AGE } from "../../../../../lib/auth/cookies";
 
 // Precomputed scrypt of "login-password-timing-equalizer" — hardcoded so the
 // "no user" / "user has no password" paths run scrypt against this hash and
@@ -86,7 +86,7 @@ export async function POST(request) {
     const token = await signReferrerJwt(referrer);
 
     const response = NextResponse.json({ success: true });
-    response.cookies.set(REFERRER_COOKIE_NAME, token, buildCookieOptions(60 * 60 * 24 * 14));
+    response.cookies.set(REFERRER_COOKIE_NAME, token, buildCookieOptions(REFERRER_SESSION_MAX_AGE));
     return response;
   } catch (error) {
     console.error("[referral/auth/login-password] Unexpected error:", error);
