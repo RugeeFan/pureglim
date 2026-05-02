@@ -2,12 +2,16 @@ import { unstable_noStore as noStore } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getReferrerSession } from "../../../lib/auth/referrerSession";
-import { formatServiceTypeLabel } from "../../../lib/services/bookingMeta";
+import {
+  formatServiceTypeLabel,
+  getBookingPricingDetails,
+} from "../../../lib/services/bookingMeta";
 import { getReferrerDashboardData } from "../../../lib/services/referrers";
 import { buildQuoteRequestReference } from "../../../lib/services/quoteRequests";
 import BankDetailsForm from "../BankDetailsForm";
 import GenerateReferralCodeButton from "../GenerateReferralCodeButton";
 import ReferrerLogoutButton from "../ReferrerLogoutButton";
+import ReferralShareCard from "../ReferralShareCard";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -95,15 +99,9 @@ export default async function ReferralDashboardPage() {
 
       <section className="referral-hero-grid">
         <article className="referral-panel referral-panel-highlight referral-code-panel">
-          <span className="referral-panel-label">Your referral code</span>
+          <span className="referral-panel-label">Share your referral</span>
           {referrer.referralCode ? (
-            <>
-              <strong className="referral-code-display">{referrer.referralCode}</strong>
-              <p>
-                Share this code with friends or customers. Eligible bookings get $20 off and
-                appear here automatically.
-              </p>
-            </>
+            <ReferralShareCard referralCode={referrer.referralCode} />
           ) : (
             <>
               <p>
@@ -172,49 +170,72 @@ export default async function ReferralDashboardPage() {
           <>
             <div className="referral-booking-cards">
               {bookings.map((booking) => (
-                <article key={booking.id} className="referral-booking-card">
-                  <div className="referral-booking-card-head">
-                    <div className="referral-booking-card-title">
-                      <span className="referral-booking-reference">
-                        {buildQuoteRequestReference(booking.id)}
-                      </span>
-                      <strong>{formatServiceTypeLabel(booking.serviceType.toLowerCase())}</strong>
-                    </div>
-                    <span
-                      className={`referral-status-badge referral-status-${booking.status
-                        .toLowerCase()
-                        .replaceAll("_", "-")}`}
-                    >
-                      {booking.statusLabel}
-                    </span>
-                  </div>
+                (() => {
+                  const pricingDetails = getBookingPricingDetails(booking);
 
-                  <div className="referral-booking-meta-grid">
-                    <div className="referral-booking-meta-item">
-                      <span>Customer</span>
-                      <strong>{booking.customerName}</strong>
-                      <small>{booking.email}</small>
-                    </div>
-                    <div className="referral-booking-meta-item">
-                      <span>Referral code</span>
-                      <strong>{booking.referralCode || referrer.referralCode || "—"}</strong>
-                    </div>
-                    <div className="referral-booking-meta-item">
-                      <span>Final amount</span>
-                      <strong>{formatCurrency(booking.finalAmount ?? booking.estimatedPrice)}</strong>
-                      <small>Discount {formatCurrency(booking.discountAmount ?? 0)}</small>
-                    </div>
-                    <div className="referral-booking-meta-item">
-                      <span>Earnings</span>
-                      <strong>{formatCurrency(booking.commissionAmount)}</strong>
-                      <small>{booking.commissionStateLabel}</small>
-                    </div>
-                  </div>
+                  return (
+                    <article key={booking.id} className="referral-booking-card">
+                      <div className="referral-booking-card-head">
+                        <div className="referral-booking-card-title">
+                          <span className="referral-booking-reference">
+                            {buildQuoteRequestReference(booking.id)}
+                          </span>
+                          <strong>{formatServiceTypeLabel(booking.serviceType.toLowerCase())}</strong>
+                        </div>
+                        <span
+                          className={`referral-status-badge referral-status-${booking.status
+                            .toLowerCase()
+                            .replaceAll("_", "-")}`}
+                        >
+                          {booking.statusLabel}
+                        </span>
+                      </div>
 
-                  <div className="referral-booking-card-footer">
-                    <span>Submitted {formatDate(booking.createdAt)}</span>
-                  </div>
-                </article>
+                      <div className="referral-booking-amount-strip">
+                        <div className="referral-booking-amount-card">
+                          <span>{pricingDetails.headlineLabel}</span>
+                          <strong>{formatCurrency(pricingDetails.headlineAmount)}</strong>
+                          {pricingDetails.comparisonAmount != null ? (
+                            <small>
+                              {pricingDetails.comparisonLabel} {formatCurrency(pricingDetails.comparisonAmount)}
+                            </small>
+                          ) : null}
+                        </div>
+                        <div className="referral-booking-amount-card referral-booking-amount-card--earnings">
+                          <span>Your earnings</span>
+                          <strong>{formatCurrency(booking.commissionAmount)}</strong>
+                          <small>{booking.commissionStateLabel}</small>
+                        </div>
+                      </div>
+
+                      <div className="referral-booking-meta-grid">
+                        <div className="referral-booking-meta-item">
+                          <span>Customer</span>
+                          <strong>{booking.customerName}</strong>
+                          <small>{booking.email}</small>
+                        </div>
+                        <div className="referral-booking-meta-item">
+                          <span>Referral code</span>
+                          <strong>{booking.referralCode || referrer.referralCode || "—"}</strong>
+                        </div>
+                        <div className="referral-booking-meta-item">
+                          <span>Submitted</span>
+                          <strong>{formatDate(booking.createdAt)}</strong>
+                          <small>Reference {buildQuoteRequestReference(booking.id)}</small>
+                        </div>
+                        <div className="referral-booking-meta-item">
+                          <span>Commission state</span>
+                          <strong>{booking.commissionStateLabel}</strong>
+                          <small>Status {booking.statusLabel}</small>
+                        </div>
+                      </div>
+
+                      <div className="referral-booking-card-footer">
+                        <span>Linked and tracked from the live admin booking status.</span>
+                      </div>
+                    </article>
+                  );
+                })()
               ))}
             </div>
 
@@ -226,7 +247,7 @@ export default async function ReferralDashboardPage() {
                     <th>Service</th>
                     <th>Customer</th>
                     <th>Referral code</th>
-                    <th>Final amount</th>
+                    <th>Pricing</th>
                     <th>Status</th>
                     <th>Earnings</th>
                     <th>Submitted</th>
@@ -234,41 +255,52 @@ export default async function ReferralDashboardPage() {
                 </thead>
                 <tbody>
                   {bookings.map((booking) => (
-                    <tr key={booking.id}>
-                      <td>{buildQuoteRequestReference(booking.id)}</td>
-                      <td>{formatServiceTypeLabel(booking.serviceType.toLowerCase())}</td>
-                      <td>
-                        <div className="referral-cell-stack">
-                          <span>{booking.customerName}</span>
-                          <small>{booking.email}</small>
-                        </div>
-                      </td>
-                      <td>
-                        {booking.referralCode || referrer.referralCode || "—"}
-                      </td>
-                      <td>
-                        <div className="referral-cell-stack">
-                          <span>{formatCurrency(booking.finalAmount ?? booking.estimatedPrice)}</span>
-                          <small>Discount {formatCurrency(booking.discountAmount ?? 0)}</small>
-                        </div>
-                      </td>
-                      <td>
-                        <span
-                          className={`referral-status-badge referral-status-${booking.status
-                            .toLowerCase()
-                            .replaceAll("_", "-")}`}
-                        >
-                          {booking.statusLabel}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="referral-cell-stack">
-                          <span>{formatCurrency(booking.commissionAmount)}</span>
-                          <small>{booking.commissionStateLabel}</small>
-                        </div>
-                      </td>
-                      <td>{formatDate(booking.createdAt)}</td>
-                    </tr>
+                    (() => {
+                      const pricingDetails = getBookingPricingDetails(booking);
+
+                      return (
+                        <tr key={booking.id}>
+                          <td>{buildQuoteRequestReference(booking.id)}</td>
+                          <td>{formatServiceTypeLabel(booking.serviceType.toLowerCase())}</td>
+                          <td>
+                            <div className="referral-cell-stack">
+                              <span>{booking.customerName}</span>
+                              <small>{booking.email}</small>
+                            </div>
+                          </td>
+                          <td>
+                            {booking.referralCode || referrer.referralCode || "—"}
+                          </td>
+                          <td>
+                            <div className="referral-cell-stack">
+                              <span>{formatCurrency(pricingDetails.headlineAmount)}</span>
+                              <small>{pricingDetails.headlineLabel}</small>
+                              {pricingDetails.comparisonAmount != null ? (
+                                <small>
+                                  {pricingDetails.comparisonLabel} {formatCurrency(pricingDetails.comparisonAmount)}
+                                </small>
+                              ) : null}
+                            </div>
+                          </td>
+                          <td>
+                            <span
+                              className={`referral-status-badge referral-status-${booking.status
+                                .toLowerCase()
+                                .replaceAll("_", "-")}`}
+                            >
+                              {booking.statusLabel}
+                            </span>
+                          </td>
+                          <td>
+                            <div className="referral-cell-stack">
+                              <span>{formatCurrency(booking.commissionAmount)}</span>
+                              <small>{booking.commissionStateLabel}</small>
+                            </div>
+                          </td>
+                          <td>{formatDate(booking.createdAt)}</td>
+                        </tr>
+                      );
+                    })()
                   ))}
                 </tbody>
               </table>

@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { z } from "zod";
 import { getSession } from "../../../lib/auth/session";
 import {
   getQuoteRequests,
@@ -8,13 +9,15 @@ import {
   formatServiceTypeLabel,
   formatQuoteRequestStatusLabel,
   updateQuoteRequestStatus,
-  forceSetQuoteRequestStatus,
+  undoQuoteRequestStatus,
+  InvalidStatusUndoError,
 } from "../../../lib/services/quoteRequests";
 import StatusNav from "./StatusNav";
 import {
   BOOKING_STATUS_VALUES,
   getAllowedBookingStatusTransitions,
   formatBookingStatusLabel,
+  getBookingPricingDetails,
 } from "../../../lib/services/bookingMeta";
 import DeleteAllButton from "./DeleteAllButton";
 
@@ -38,6 +41,14 @@ function formatCurrency(amount) {
   }).format(amount);
 }
 
+function renderPricingRows(pricingDetails) {
+  return pricingDetails.rows.map((row) => (
+    <span key={row.label}>
+      {row.label} {formatCurrency(row.amount)}
+    </span>
+  ));
+}
+
 function getPreviousStatus(status) {
   const idx = BOOKING_STATUS_VALUES.indexOf(status);
   return idx > 0 ? BOOKING_STATUS_VALUES[idx - 1] : null;
@@ -48,6 +59,13 @@ function getNextStatus(status) {
   return transitions[0] ?? null;
 }
 
+const inlineStatusSchema = z.enum(BOOKING_STATUS_VALUES);
+
+function appendError(returnTo, message) {
+  const sep = returnTo.includes("?") ? "&" : "?";
+  return `${returnTo}${sep}error=${encodeURIComponent(message)}`;
+}
+
 async function updateStatusInline(formData) {
   "use server";
   const cookieStore = await cookies();
@@ -55,13 +73,22 @@ async function updateStatusInline(formData) {
   if (!session.valid) redirect("/admin/login");
 
   const id = formData.get("id");
-  const status = formData.get("status");
+  const parsed = inlineStatusSchema.safeParse(formData.get("status"));
   const returnTo = formData.get("returnTo") || "/admin/enquiries";
 
+  if (!parsed.success) {
+    redirect(appendError(returnTo, "Invalid booking status."));
+  }
+
   try {
-    await updateQuoteRequestStatus(id, status);
-  } catch {
-    // invalid transition — redirect back silently
+    await updateQuoteRequestStatus(id, parsed.data);
+  } catch (error) {
+    console.error("[admin/enquiries] advance failed:", error);
+    const userMessage =
+      error instanceof Error && error.message
+        ? error.message
+        : "Couldn't advance booking status.";
+    redirect(appendError(returnTo, userMessage));
   }
   redirect(returnTo);
 }
@@ -73,13 +100,22 @@ async function undoStatusInline(formData) {
   if (!session.valid) redirect("/admin/login");
 
   const id = formData.get("id");
-  const status = formData.get("status");
+  const parsed = inlineStatusSchema.safeParse(formData.get("status"));
   const returnTo = formData.get("returnTo") || "/admin/enquiries";
 
+  if (!parsed.success) {
+    redirect(appendError(returnTo, "Invalid booking status."));
+  }
+
   try {
-    await forceSetQuoteRequestStatus(id, status);
-  } catch {
-    // ignore
+    await undoQuoteRequestStatus(id, parsed.data);
+  } catch (error) {
+    console.error("[admin/enquiries] undo failed:", error);
+    const userMessage =
+      error instanceof InvalidStatusUndoError
+        ? error.message
+        : "Couldn't undo booking status.";
+    redirect(appendError(returnTo, userMessage));
   }
   redirect(returnTo);
 }
@@ -122,6 +158,12 @@ export default async function EnquiriesPage({ searchParams }) {
         </div>
         <DeleteAllButton count={total} />
       </div>
+
+      {params?.error ? (
+        <div className="admin-inline-notice admin-inline-notice--error">
+          {params.error}
+        </div>
+      ) : null}
 
       {/* Search + filter bar */}
       <div className="admin-search-shell">
@@ -171,6 +213,7 @@ export default async function EnquiriesPage({ searchParams }) {
                   const nextStatus = getNextStatus(enq.status);
                   const prevStatus = getPreviousStatus(enq.status);
                   const statusSlug = enq.status.toLowerCase().replaceAll("_", "-");
+                  const pricingDetails = getBookingPricingDetails(enq);
 
                   return (
                     <tr key={enq.id} className="admin-table-row">
@@ -197,38 +240,36 @@ export default async function EnquiriesPage({ searchParams }) {
                       </td>
                       <td>
                         {enq.referrerId ? (
-                          <div className="admin-cell-stack">
-                            <span>{enq.referrer?.fullName || "Referral"}</span>
-                            <small>{enq.referralCode || enq.referrer?.referralCode || "—"}</small>
+                          <div className="admin-referral-cell">
+                            <span className="admin-referral-pill admin-referral-pill--linked">
+                              Referral linked
+                            </span>
+                            <div className="admin-cell-stack">
+                              <span>{enq.referrer?.fullName || "Referral"}</span>
+                              <small>{enq.referralCode || enq.referrer?.referralCode || "—"}</small>
+                            </div>
                           </div>
                         ) : (
-                          <span className="admin-muted">—</span>
+                          <div className="admin-referral-cell">
+                            <span className="admin-referral-pill admin-referral-pill--organic">
+                              Direct booking
+                            </span>
+                            <span className="admin-muted">No referral source</span>
+                          </div>
                         )}
                       </td>
                       <td>
-                        <div className="admin-cell-stack">
-                          <span>
-                            Original{" "}
-                            {enq.originalAmount != null
-                              ? `$${enq.originalAmount}`
-                              : enq.estimatedPrice != null
-                                ? `$${enq.estimatedPrice}`
-                                : "—"}
-                          </span>
-                          {(enq.discountAmount ?? 0) > 0 && (
-                            <small>Discount -${enq.discountAmount}</small>
-                          )}
-                          <small>
-                            Final{" "}
-                            {enq.finalAmount != null
-                              ? `$${enq.finalAmount}`
-                              : enq.estimatedPrice != null
-                                ? `$${enq.estimatedPrice}`
-                                : "—"}
-                          </small>
-                          {enq.commissionAmount != null && (
-                            <small>Commission ${enq.commissionAmount}</small>
-                          )}
+                        <div className="admin-amount-card">
+                          <div className="admin-amount-card-main">
+                            <span>{pricingDetails.headlineLabel}</span>
+                            <strong>{formatCurrency(pricingDetails.headlineAmount)}</strong>
+                          </div>
+                          <div className="admin-amount-card-grid">
+                            {renderPricingRows(pricingDetails)}
+                            <span>
+                              Commission {formatCurrency(enq.commissionAmount)}
+                            </span>
+                          </div>
                         </div>
                       </td>
 
@@ -264,6 +305,7 @@ export default async function EnquiriesPage({ searchParams }) {
               const nextStatus = getNextStatus(enq.status);
               const prevStatus = getPreviousStatus(enq.status);
               const statusSlug = enq.status.toLowerCase().replaceAll("_", "-");
+              const pricingDetails = getBookingPricingDetails(enq);
 
               return (
                 <article key={`${enq.id}-card`} className="admin-enquiry-card">
@@ -291,26 +333,38 @@ export default async function EnquiriesPage({ searchParams }) {
                       <small>{enq.email}</small>
                     </div>
 
-                    <div className="admin-enquiry-card-block">
-                      <span>Referral</span>
+                    <div className="admin-enquiry-card-block admin-enquiry-card-block--referral">
+                      <div className="admin-enquiry-card-block-head">
+                        <span>Referral source</span>
+                        <em className={enq.referrerId ? "is-linked" : "is-organic"}>
+                          {enq.referrerId ? "Linked" : "Direct"}
+                        </em>
+                      </div>
                       <strong>{enq.referrer?.fullName || "No referral"}</strong>
                       <small>{enq.referralCode || "—"}</small>
                     </div>
 
-                    <div className="admin-enquiry-card-block">
+                    <div className="admin-enquiry-card-block admin-enquiry-card-block--finance">
                       <span>Amounts</span>
                       <strong>
-                        {formatCurrency(enq.finalAmount ?? enq.estimatedPrice)}
+                        {formatCurrency(pricingDetails.headlineAmount)}
                       </strong>
-                      <small>
-                        Original {formatCurrency(enq.originalAmount ?? enq.estimatedPrice)}
-                      </small>
-                      <small>
-                        Discount {formatCurrency(enq.discountAmount ?? 0)}
-                      </small>
-                      <small>
-                        Commission {formatCurrency(enq.commissionAmount)}
-                      </small>
+                      <div className="admin-finance-inline">
+                        <small>{pricingDetails.headlineLabel}</small>
+                        {pricingDetails.comparisonAmount != null ? (
+                          <small>
+                            {pricingDetails.comparisonLabel} {formatCurrency(pricingDetails.comparisonAmount)}
+                          </small>
+                        ) : null}
+                        {pricingDetails.rows.map((row) => (
+                          <small key={row.label}>
+                            {row.label} {formatCurrency(row.amount)}
+                          </small>
+                        ))}
+                        <small>
+                          Commission {formatCurrency(enq.commissionAmount)}
+                        </small>
+                      </div>
                     </div>
 
                     <div className="admin-enquiry-card-block">

@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { signReferrerPendingJwt, REFERRER_PENDING_COOKIE_NAME } from "../../../../../lib/auth/referrerSession";
 import { getReferrerByPhone, normalizePhoneNumber } from "../../../../../lib/services/referrers";
-import { checkSmsRateLimit, setSmsRateLimit } from "../../../../../lib/services/smsRateLimit";
+import {
+  reserveSmsRateLimit,
+  reserveIpSmsAttempt,
+  rollbackSmsRateLimitReservation,
+} from "../../../../../lib/services/smsRateLimit";
 import { startPhoneVerification } from "../../../../../lib/services/twilioVerify";
 import { hashPassword } from "../../../../../lib/utils/password";
+import { getClientIp } from "../../../../../lib/utils/clientIp";
 import { referrerAuthStartSchema } from "../../../../../lib/validation/referrerAuth";
 
 function buildCookieOptions(maxAgeSeconds) {
@@ -39,27 +44,15 @@ export async function POST(request) {
       );
     }
 
-    const rateLimit = await checkSmsRateLimit(phone);
-    if (!rateLimit.allowed) {
+    const clientIp = getClientIp(request);
+    const ipLimit = await reserveIpSmsAttempt(clientIp);
+    if (!ipLimit.allowed) {
       return NextResponse.json(
-        { error: `Please wait ${rateLimit.secondsLeft}s before requesting another code.`, secondsLeft: rateLimit.secondsLeft },
+        {
+          error: `Too many requests. Please wait ${ipLimit.secondsLeft}s before trying again.`,
+          secondsLeft: ipLimit.secondsLeft,
+        },
         { status: 429 },
-      );
-    }
-
-    const existingReferrer = await getReferrerByPhone(phone);
-
-    if (parsed.data.mode === "register" && existingReferrer) {
-      return NextResponse.json(
-        { error: "That phone number already has a referral account. Please log in instead." },
-        { status: 409 },
-      );
-    }
-
-    if (parsed.data.mode === "login" && !existingReferrer) {
-      return NextResponse.json(
-        { error: "We couldn't find a referral account for that phone number. Please register first." },
-        { status: 404 },
       );
     }
 
@@ -70,18 +63,47 @@ export async function POST(request) {
       );
     }
 
+    // Existence-check is intentionally NOT used to branch the response —
+    // 409/404 differentiation here would let an attacker enumerate registered
+    // phone numbers without ever owning the SIM. We sign a "consistent" flag
+    // into the pending JWT and the verify route enforces it after OTP.
+    const existingReferrer = await getReferrerByPhone(phone);
+    const consistent =
+      (parsed.data.mode === "register" && !existingReferrer) ||
+      (parsed.data.mode === "login" && Boolean(existingReferrer));
+
+    const rateLimit = await reserveSmsRateLimit(phone);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: `Please wait ${rateLimit.secondsLeft}s before requesting another code.`, secondsLeft: rateLimit.secondsLeft },
+        { status: 429 },
+      );
+    }
+
     const passwordHash = parsed.data.mode === "register" && parsed.data.password
       ? await hashPassword(parsed.data.password)
       : undefined;
 
-    const verification = await startPhoneVerification(phone);
-    await setSmsRateLimit(phone);
+    // Only burn a real SMS when the (mode, account-state) tuple is consistent.
+    // For mismatched tuples we still set a pending cookie of identical shape so
+    // the response is indistinguishable to an attacker. The verify route fails
+    // these closed using the same generic "incorrect code" path.
+    let verification = { mock: false };
+    if (consistent) {
+      try {
+        verification = await startPhoneVerification(phone);
+      } catch (error) {
+        await rollbackSmsRateLimitReservation(rateLimit.reservation);
+        throw error;
+      }
+    }
 
     const pendingToken = await signReferrerPendingJwt({
       phone,
       fullName: parsed.data.fullName,
       mode: parsed.data.mode,
       ...(passwordHash ? { passwordHash } : {}),
+      ...(consistent ? {} : { consistent: false }),
     });
 
     const response = NextResponse.json({
@@ -101,13 +123,9 @@ export async function POST(request) {
 
     return response;
   } catch (error) {
+    console.error("[referral/auth/start] Unexpected error:", error);
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "We couldn't start verification right now.",
-      },
+      { error: "We couldn't start verification right now." },
       { status: 500 },
     );
   }

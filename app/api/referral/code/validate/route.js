@@ -35,22 +35,23 @@ export async function POST(request) {
       originalAmount: parsed.data.amount ?? null,
     });
 
+    // Note: referrerName is intentionally NOT returned. Exposing it on this
+    // unauthenticated endpoint would let an attacker enumerate all issued
+    // referral codes against the small alphabet space and harvest the full
+    // names (and previously phone-fallback) of every registered referrer.
     return NextResponse.json({
       valid: true,
       code: summary.code,
-      referrerName: summary.referrerName,
       discountAmount: summary.discountAmount,
       originalAmount: summary.originalAmount,
       finalAmount: summary.finalAmount,
     });
   } catch (error) {
+    console.error("[referral/code/validate] Unexpected error:", error);
     return NextResponse.json(
       {
         valid: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "We couldn't validate that code right now.",
+        error: "We couldn't validate that code right now.",
       },
       { status: 500 },
     );

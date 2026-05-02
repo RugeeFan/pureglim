@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSession } from "../../../lib/auth/session";
 import { getAllReferrersForAdmin } from "../../../lib/services/referrers";
+import { maskAccountNumber, maskBsb } from "../../../lib/utils/maskBank";
 
 export const metadata = { title: "Referrers — PureGlim Admin" };
 
@@ -89,14 +90,14 @@ export default async function AdminReferrersPage() {
                       </td>
                       <td>
                         {hasBankDetails ? (
-                          referrer.bsb
+                          <span title="Last 2 digits shown — full BSB hidden">{maskBsb(referrer.bsb)}</span>
                         ) : (
                           <span className="admin-muted">—</span>
                         )}
                       </td>
                       <td>
                         {hasBankDetails ? (
-                          referrer.bankAccountNumber
+                          <span title="Last 3 digits shown — full account number hidden">{maskAccountNumber(referrer.bankAccountNumber)}</span>
                         ) : (
                           <span className="admin-muted">—</span>
                         )}
@@ -147,8 +148,8 @@ export default async function AdminReferrersPage() {
                     </div>
                     <div className="admin-enquiry-card-block">
                       <span>Bank details</span>
-                      <strong>{hasBankDetails ? referrer.bsb : "—"}</strong>
-                      <small>{hasBankDetails ? referrer.bankAccountNumber : "—"}</small>
+                      <strong>{hasBankDetails ? maskBsb(referrer.bsb) : "—"}</strong>
+                      <small>{hasBankDetails ? maskAccountNumber(referrer.bankAccountNumber) : "—"}</small>
                     </div>
                   </div>
                 </article>

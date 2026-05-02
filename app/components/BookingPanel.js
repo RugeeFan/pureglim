@@ -45,8 +45,6 @@ import {
   services,
 } from "../data/constants";
 
-const roundTo5 = (n) => Math.round(n / 5) * 5;
-
 function getServiceById(serviceId) {
   return services.find((service) => service.id === serviceId) ?? services[0];
 }
@@ -319,6 +317,11 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
     }));
 
     try {
+      const validationAmount =
+        selectedServiceId === "regular" && form.frequency !== "One-time"
+          ? (quote.firstCleanPrice ?? quote.amount)
+          : quote.amount;
+
       const response = await fetch("/api/referral/code/validate", {
         method: "POST",
         headers: {
@@ -326,7 +329,7 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
         },
         body: JSON.stringify({
           code,
-          amount: quote.amount,
+          amount: validationAmount,
         }),
       });
       const result = await response.json();
@@ -373,7 +376,7 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
         setDiscountState(getDefaultDiscountState());
       }
 
-      if (source === "auto" || source === "manual") {
+      if (source === "auto") {
         clearReferralAttribution();
       }
       autoReferralCodeRef.current = "";
@@ -460,6 +463,9 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
       return selectedServiceId === "commercial" ? "Request a site visit" : "See my estimate";
     }
     if (currentStep === "quote") {
+      if (supportsReferralDiscount && normalizeReferralCode(form.discountCode) && discountState.status !== "valid") {
+        return "Verify code";
+      }
       return selectedService?.quote.nextLabel ?? "Next";
     }
     if (currentStep === "contact") return selectedService?.quote.nextLabel ?? "Review";
@@ -481,12 +487,15 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
       : "";
 
     if (supportsReferralDiscount && submittedReferralCode && discountState.status !== "valid") {
-      await applyDiscountCode({
+      const applied = await applyDiscountCode({
         codeOverride: submittedReferralCode,
         source: "manual",
         silentInvalid: true,
         persistOnSuccess: true,
       });
+      if (!applied) {
+        submittedReferralCode = "";
+      }
     }
 
     const payload = {
@@ -545,6 +554,11 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
 
     setShowValidation(false);
     setSubmitError("");
+
+    if (currentStep === "quote" && supportsReferralDiscount && normalizeReferralCode(form.discountCode) && discountState.status !== "valid") {
+      await applyDiscountCode({ source: "manual" });
+      return;
+    }
 
     if (currentStep === "review") {
       await submitRequest();
@@ -997,10 +1011,10 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                         {discountState.status === "valid" && discountState.message ? (
                           <span className="discount-applied-inline">{discountState.message}</span>
                         ) : null}
+                        {discountState.status === "invalid" && discountState.message ? (
+                          <span className="discount-code-feedback is-error">{discountState.message}</span>
+                        ) : null}
                       </div>
-                      {discountState.status === "invalid" && discountState.message ? (
-                        <p className="discount-code-feedback is-error">{discountState.message}</p>
-                      ) : null}
                     </div>
                   )}
 

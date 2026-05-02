@@ -287,6 +287,154 @@
   letter-spacing: -0.05em;
 }
 
+.referral-share-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.referral-share-header {
+  display: grid;
+  gap: 10px;
+}
+
+.referral-share-kicker {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(244, 248, 247, 0.88);
+  font-size: 0.84rem;
+  letter-spacing: 0.04em;
+}
+
+.referral-share-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.referral-share-copy,
+.referral-qr-card {
+  display: grid;
+  gap: 14px;
+}
+
+.referral-share-pane {
+  padding: 18px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.referral-share-field {
+  display: grid;
+  gap: 10px;
+}
+
+.referral-code-chip,
+.referral-link-box {
+  min-height: 60px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  color: #f4f8f7;
+}
+
+.referral-code-chip {
+  font-size: 1.08rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.referral-link-box span {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  font-size: 0.96rem;
+  line-height: 1.45;
+}
+
+.referral-share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.referral-panel-highlight .referral-share-copy-btn {
+  width: auto;
+  min-width: 144px;
+  padding: 0 18px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.referral-share-open-btn {
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.referral-share-copy-feedback {
+  display: block;
+  flex: 1 1 100%;
+  color: rgba(244, 248, 247, 0.72);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.referral-share-copy-feedback.is-error {
+  color: #ffd8cc;
+}
+
+.referral-qr-card {
+  align-content: start;
+}
+
+.referral-qr-frame {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f4f8f7;
+}
+
+.referral-qr-frame svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.referral-qr-placeholder,
+.referral-qr-card small {
+  color: rgba(244, 248, 247, 0.72);
+}
+
+.referral-qr-placeholder {
+  font-size: 0.95rem;
+}
+
+.referral-qr-card small {
+  line-height: 1.5;
+}
+
 .referral-stats-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -340,12 +488,13 @@
 
 .referral-booking-card {
   display: grid;
-  gap: 18px;
+  gap: 16px;
   padding: 20px;
   border-radius: 22px;
   border: 1px solid rgba(19, 34, 31, 0.08);
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 16px 38px rgba(15, 31, 28, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(246, 250, 248, 0.82));
+  box-shadow: 0 18px 42px rgba(15, 31, 28, 0.08);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
@@ -376,6 +525,45 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: rgba(19, 34, 31, 0.6);
+}
+
+.referral-booking-amount-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.referral-booking-amount-card {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(19, 34, 31, 0.08), rgba(19, 34, 31, 0.04));
+  border: 1px solid rgba(19, 34, 31, 0.06);
+}
+
+.referral-booking-amount-card span {
+  font-size: 0.72rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(19, 34, 31, 0.55);
+}
+
+.referral-booking-amount-card strong {
+  font-size: 1.48rem;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.referral-booking-amount-card small {
+  color: rgba(19, 34, 31, 0.62);
+  line-height: 1.45;
+}
+
+.referral-booking-amount-card--earnings {
+  background:
+    linear-gradient(180deg, rgba(15, 107, 90, 0.09), rgba(15, 107, 90, 0.04));
 }
 
 .referral-booking-meta-grid {
@@ -412,7 +600,8 @@
 
 .referral-booking-card-footer {
   padding-top: 2px;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
 }
 
 .referral-table-wrapper {
@@ -574,6 +763,10 @@
     min-height: auto;
   }
 
+  .referral-share-grid {
+    grid-template-columns: 1fr;
+  }
+
   .referral-stat-card {
     min-height: 152px;
   }
@@ -617,6 +810,22 @@
     font-size: clamp(2rem, 13vw, 3rem);
   }
 
+  .referral-share-actions {
+    display: grid;
+  }
+
+  .referral-panel-highlight .referral-share-copy-btn {
+    width: 100%;
+  }
+
+  .referral-share-open-btn {
+    width: 100%;
+  }
+
+  .referral-qr-frame {
+    min-height: 0;
+  }
+
   .referral-booking-cards {
     display: block;
   }
@@ -625,6 +834,7 @@
     display: none;
   }
 
+  .referral-booking-amount-strip,
   .referral-booking-meta-grid,
   .referral-bank-two-col,
   .referral-bank-row {

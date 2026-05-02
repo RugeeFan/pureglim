@@ -87,14 +87,15 @@ export default function RegularCleaningPage() {
       <section className="rp-section">
         <h2 className="rp-h2">Add-ons</h2>
         <p className="rp-body">
-          Available to add to any regular clean at booking or on the day:
+          Available to add to a regular clean by request. We&apos;ll confirm the exact scope and
+          price before the visit:
         </p>
         <ul className="rp-list">
-          <li>Oven clean (interior) — $65</li>
-          <li>Fridge clean (interior) — $35</li>
-          <li>Interior windows — $45</li>
-          <li>Balcony sweep and wipe — $25</li>
-          <li>Laundry — wash, dry, fold — $20</li>
+          <li>Oven clean (interior)</li>
+          <li>Fridge clean (interior)</li>
+          <li>Interior windows</li>
+          <li>Balcony sweep and wipe</li>
+          <li>Laundry support</li>
         </ul>
       </section>
 

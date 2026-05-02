@@ -10,12 +10,17 @@ import FaqPanel from "./components/FaqPanel";
 import PrivacyPanel from "./components/PrivacyPanel";
 import ServicesPanel from "./components/ServicesPanel";
 import TermsPanel from "./components/TermsPanel";
+import { persistReferralAttribution, readReferralAttribution } from "../lib/referral/browser";
+import { normalizeReferralCode, REFERRAL_QUERY_PARAM } from "../lib/referral/shared";
+
+const BOOKING_QUERY_PARAM = "booking";
 
 export default function Home() {
   const [activePanel, setActivePanel] = useState(null);
   const [closingPanel, setClosingPanel] = useState(null);
   const [initialBookingServiceId, setInitialBookingServiceId] = useState(null);
   const [videoReady, setVideoReady] = useState(false);
+  const [referralNotice, setReferralNotice] = useState(null);
   const panelTimerRef = useRef(null);
   const videoRef = useRef(null);
 
@@ -78,6 +83,96 @@ export default function Home() {
   useEffect(() => {
     return () => {
       if (panelTimerRef.current) clearTimeout(panelTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const currentUrl = new URL(window.location.href);
+    const shouldOpenBooking =
+      currentUrl.searchParams.get(BOOKING_QUERY_PARAM)?.toLowerCase() === "true";
+    const refParam = normalizeReferralCode(
+      currentUrl.searchParams.get(REFERRAL_QUERY_PARAM),
+    );
+    let bookingOpenedFromUrl = false;
+
+    const openBookingIfRequested = () => {
+      if (!shouldOpenBooking || bookingOpenedFromUrl) return;
+      bookingOpenedFromUrl = true;
+      startBooking();
+    };
+
+    let cancelled = false;
+
+    const cleanupUrl = () => {
+      currentUrl.searchParams.delete(REFERRAL_QUERY_PARAM);
+      currentUrl.searchParams.delete(BOOKING_QUERY_PARAM);
+      const nextSearch = currentUrl.searchParams.toString();
+      const nextUrl = `${currentUrl.pathname}${nextSearch ? `?${nextSearch}` : ""}${currentUrl.hash}`;
+      window.history.replaceState({}, "", nextUrl);
+    };
+
+    if (!refParam) {
+      const stored = readReferralAttribution();
+      if (stored) {
+        setReferralNotice({
+          type: "success",
+          message: "Referral discount applied",
+          referrerName: stored.referrerName || "",
+        });
+      }
+      openBookingIfRequested();
+      if (shouldOpenBooking) {
+        cleanupUrl();
+      }
+      return;
+    }
+
+    async function applyReferralFromUrl() {
+      try {
+        const response = await fetch("/api/referral/code/validate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ code: refParam }),
+        });
+        const result = await response.json();
+
+        if (cancelled) return;
+
+        if (response.ok && result.valid) {
+          persistReferralAttribution({
+            code: result.code,
+            referrerName: result.referrerName,
+          });
+          setReferralNotice({
+            type: "success",
+            message: "Referral discount applied",
+            referrerName: result.referrerName || "",
+          });
+          openBookingIfRequested();
+          return;
+        }
+
+        setReferralNotice(null);
+      } catch {
+        if (!cancelled) {
+          setReferralNotice(null);
+        }
+      } finally {
+        if (!cancelled) {
+          openBookingIfRequested();
+          cleanupUrl();
+        }
+      }
+    }
+
+    void applyReferralFromUrl();
+
+    return () => {
+      cancelled = true;
     };
   }, []);
 
@@ -294,10 +389,26 @@ export default function Home() {
             ))}
           </nav>
 
-          <a className="contact-link" href="tel:+61000000000">
-            <Phone size={16} />
-            <span>+61 449 963 099</span>
-          </a>
+          <div className="topbar-utility">
+            {referralNotice ? (
+              <div className={`hero-referral-banner${referralNotice.type === "success" ? " is-success" : ""}`}>
+                <span className="hero-referral-banner-title">{referralNotice.message}</span>
+                {referralNotice.referrerName ? (
+                  <span className="hero-referral-banner-copy">
+                    Linked to {referralNotice.referrerName}. Auto-applies on your first regular clean.
+                  </span>
+                ) : (
+                  <span className="hero-referral-banner-copy">
+                    Auto-applies on your first regular clean.
+                  </span>
+                )}
+              </div>
+            ) : null}
+            <a className="contact-link" href="tel:+61000000000">
+              <Phone size={16} />
+              <span>+61 449 963 099</span>
+            </a>
+          </div>
         </header>
 
         <div className="content-stage">

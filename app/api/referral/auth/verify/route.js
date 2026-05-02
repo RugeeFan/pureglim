@@ -4,8 +4,14 @@ import {
   REFERRER_PENDING_COOKIE_NAME,
   getReferrerPendingSessionFromRequest,
   signReferrerJwt,
+  signReferrerPendingJwt,
 } from "../../../../../lib/auth/referrerSession";
-import { findOrCreateVerifiedReferrer } from "../../../../../lib/services/referrers";
+
+const MAX_OTP_ATTEMPTS = 5;
+import {
+  findOrCreateVerifiedReferrer,
+  ReferrerRegistrationConflictError,
+} from "../../../../../lib/services/referrers";
 import { verifyPhoneCode } from "../../../../../lib/services/twilioVerify";
 import { referrerAuthVerifySchema } from "../../../../../lib/validation/referrerAuth";
 
@@ -42,16 +48,63 @@ export async function POST(request) {
       );
     }
 
-    const verification = await verifyPhoneCode(
-      pending.payload.phone,
-      parsed.data.code,
-    );
+    const currentAttempts = Number(pending.payload.attempts ?? 0);
+    if (currentAttempts >= MAX_OTP_ATTEMPTS) {
+      const response = NextResponse.json(
+        { error: "Too many incorrect attempts. Please start again." },
+        { status: 401 },
+      );
+      response.cookies.set(REFERRER_PENDING_COOKIE_NAME, "", buildCookieOptions(0));
+      return response;
+    }
+
+    // If /start signed `consistent: false` (mode/account-state mismatch),
+    // skip Twilio entirely and treat as a wrong code — preserves the
+    // exact same response shape as a legit bad-OTP attempt.
+    const verification = pending.payload.consistent === false
+      ? { approved: false, status: "rejected", mock: false }
+      : await verifyPhoneCode(pending.payload.phone, parsed.data.code);
 
     if (!verification.approved) {
-      return NextResponse.json(
-        { error: "That verification code wasn't accepted. Please try again." },
+      const newAttempts = currentAttempts + 1;
+      const remaining = MAX_OTP_ATTEMPTS - newAttempts;
+
+      if (remaining <= 0) {
+        const response = NextResponse.json(
+          { error: "Too many incorrect attempts. Please start again." },
+          { status: 401 },
+        );
+        response.cookies.set(REFERRER_PENDING_COOKIE_NAME, "", buildCookieOptions(0));
+        return response;
+      }
+
+      const newPendingPayload = {
+        phone: pending.payload.phone,
+        fullName: pending.payload.fullName,
+        mode: pending.payload.mode,
+        ...(pending.payload.passwordHash
+          ? { passwordHash: pending.payload.passwordHash }
+          : {}),
+        ...(pending.payload.consistent === false
+          ? { consistent: false }
+          : {}),
+        attempts: newAttempts,
+      };
+      const newToken = await signReferrerPendingJwt(newPendingPayload);
+
+      const response = NextResponse.json(
+        {
+          error: `That verification code wasn't accepted. ${remaining} attempt${remaining === 1 ? "" : "s"} remaining.`,
+          attemptsRemaining: remaining,
+        },
         { status: 400 },
       );
+      response.cookies.set(
+        REFERRER_PENDING_COOKIE_NAME,
+        newToken,
+        buildCookieOptions(60 * 10),
+      );
+      return response;
     }
 
     const referrer = await findOrCreateVerifiedReferrer({
@@ -81,13 +134,17 @@ export async function POST(request) {
 
     return response;
   } catch (error) {
+    if (error instanceof ReferrerRegistrationConflictError) {
+      const response = NextResponse.json(
+        { error: error.message },
+        { status: 409 },
+      );
+      response.cookies.set(REFERRER_PENDING_COOKIE_NAME, "", buildCookieOptions(0));
+      return response;
+    }
+    console.error("[referral/verify] Unexpected error:", error);
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "We couldn't verify the code right now.",
-      },
+      { error: "We couldn't verify the code right now." },
       { status: 500 },
     );
   }

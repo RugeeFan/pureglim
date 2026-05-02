@@ -2,7 +2,7 @@ import VideoShell from "../../components/VideoShell";
 import Link from "next/link";
 
 export const metadata = {
-  title: "End of Lease Cleaning Sydney — From $340 | PureGlim",
+  title: "End of Lease Cleaning Sydney — From $280 | PureGlim",
   description:
     "Get an estimate online. Bond cleaning in Sydney to inspection standard. Inside cupboards, skirting boards, appliances, and mould treatment. Free re-clean if anything is raised at inspection.",
 };
@@ -19,9 +19,11 @@ const serviceSchema = {
   offers: {
     "@type": "Offer",
     priceSpecification: [
-      { "@type": "PriceSpecification", name: "1 bedroom", price: "340", priceCurrency: "AUD" },
-      { "@type": "PriceSpecification", name: "2 bedrooms", price: "430", priceCurrency: "AUD" },
-      { "@type": "PriceSpecification", name: "3 bedrooms", price: "520", priceCurrency: "AUD" },
+      { "@type": "PriceSpecification", name: "1 bedroom", price: "280", priceCurrency: "AUD" },
+      { "@type": "PriceSpecification", name: "2 bedrooms", price: "320", priceCurrency: "AUD" },
+      { "@type": "PriceSpecification", name: "3 bedrooms", price: "360", priceCurrency: "AUD" },
+      { "@type": "PriceSpecification", name: "4 bedrooms", price: "530", priceCurrency: "AUD" },
+      { "@type": "PriceSpecification", name: "5+ bedrooms", price: "620", priceCurrency: "AUD" },
     ],
   },
   url: "https://pureglim.com.au/services/end-of-lease",
@@ -36,7 +38,7 @@ export default function EndOfLeasePage() {
       </div>
 
       <p className="rp-eyebrow">Bond &amp; vacate cleaning</p>
-      <h1 className="rp-h1">End of lease cleaning — from $340</h1>
+      <h1 className="rp-h1">End of lease cleaning — from $280</h1>
       <p className="rp-intro">
         Cleaning to the standard your agent actually inspects to — not a rushed once-over. We cover
         every item on a typical exit checklist, and if anything within our scope is raised at
@@ -55,16 +57,18 @@ export default function EndOfLeasePage() {
       <section className="rp-section">
         <h2 className="rp-h2">Pricing</h2>
         <p className="rp-body">
-          Prices below are for a standard unfurnished clean. Furnished properties may vary slightly
-          depending on condition and layout.
+          Prices below are starting rates before optional extras. Additional bathrooms and condition
+          can shift the quote higher, so use the online estimator for an exact range.
         </p>
         <div className="rp-price-grid">
-          <div className="rp-price-card"><strong>$340</strong><span>1 bedroom</span></div>
-          <div className="rp-price-card"><strong>$430</strong><span>2 bedrooms</span></div>
-          <div className="rp-price-card"><strong>$520</strong><span>3 bedrooms</span></div>
+          <div className="rp-price-card"><strong>$280</strong><span>1 bedroom</span></div>
+          <div className="rp-price-card"><strong>$320</strong><span>2 bedrooms</span></div>
+          <div className="rp-price-card"><strong>$360</strong><span>3 bedrooms</span></div>
+          <div className="rp-price-card"><strong>$530</strong><span>4 bedrooms</span></div>
+          <div className="rp-price-card"><strong>$620</strong><span>5+ bedrooms</span></div>
         </div>
         <p className="rp-body" style={{ marginTop: "16px" }}>
-          For 4-bedroom properties or larger, <a href="tel:+61449963099" className="rp-link">call for a custom quote</a>.
+          Bathroom add-ons run from $80 for a second bathroom to $150 for four or more bathrooms.
         </p>
       </section>
 
@@ -86,12 +90,17 @@ export default function EndOfLeasePage() {
       <section className="rp-section">
         <h2 className="rp-h2">Add-ons</h2>
         <ul className="rp-list">
-          <li>Carpet steam cleaning — $70</li>
-          <li>Oven interior — $65</li>
-          <li>Fridge interior — $35</li>
-          <li>Interior windows — $45</li>
-          <li>Balcony — $25</li>
-          <li>Garage — from $40</li>
+          <li>Carpet steam cleaning — from $80</li>
+          <li>Oven cleaning — $20</li>
+          <li>Fridge cleaning — $20</li>
+          <li>Microwave cleaning — $20</li>
+          <li>Staircase cleaning — $60</li>
+          <li>Wall stain removal — $20</li>
+          <li>Toilet stain removal — $20</li>
+          <li>Pet hair removal — $20</li>
+          <li>Mould removal — $20</li>
+          <li>Carpet stain removal — $25</li>
+          <li>Blind cleaning — from $15 per blind</li>
         </ul>
       </section>
 

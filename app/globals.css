@@ -211,6 +211,8 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .content-stage {
@@ -2915,6 +2917,8 @@ a.contact-card:hover {
 
 .discount-code-feedback.is-error {
   color: rgba(255, 182, 182, 0.92);
+  white-space: nowrap;
+  font-size: 0.82rem;
 }
 
 /* ── Contact step: price reminder chip ───────────────────────────────────── */

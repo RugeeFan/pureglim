@@ -39,13 +39,9 @@ export async function PUT(request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("[referral/bank/update] Unexpected error:", error);
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "We couldn't save your bank details right now.",
-      },
+      { error: "We couldn't save your bank details right now." },
       { status: 500 },
     );
   }

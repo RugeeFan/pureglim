@@ -16,6 +16,7 @@ import {
   formatBookingStatusLabel,
   getAllowedBookingStatusTransitions,
   getBookingStatusDescription,
+  getBookingPricingDetails,
 } from "../../../../lib/services/bookingMeta";
 import DeleteButton from "./DeleteButton";
 
@@ -99,6 +100,15 @@ function formatDate(date) {
   }).format(new Date(date));
 }
 
+function formatCurrency(amount) {
+  if (amount == null) return "—";
+  return new Intl.NumberFormat("en-AU", {
+    style: "currency",
+    currency: "AUD",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default async function EnquiryDetailPage({ params, searchParams }) {
   const cookieStore = await cookies();
@@ -123,6 +133,7 @@ export default async function EnquiryDetailPage({ params, searchParams }) {
       ? "Booking status updated."
       : query?.error || "";
   const commissionStateLabel = getQuoteRequestCommissionStateLabel(enquiry);
+  const pricingDetails = getBookingPricingDetails(enquiry);
 
   return (
     <div>
@@ -159,13 +170,15 @@ export default async function EnquiryDetailPage({ params, searchParams }) {
           <small>{formatDate(enquiry.createdAt)}</small>
         </article>
         <article className="admin-detail-overview-card">
-          <span className="admin-detail-overview-label">Final amount</span>
+          <span className="admin-detail-overview-label">{pricingDetails.headlineLabel}</span>
           <strong className="admin-detail-overview-value">
-            {enquiry.finalAmount != null ? `$${enquiry.finalAmount}` : "—"}
+            {formatCurrency(pricingDetails.headlineAmount)}
           </strong>
-          <small>
-            Original {enquiry.originalAmount != null ? `$${enquiry.originalAmount}` : "—"}
-          </small>
+          {pricingDetails.comparisonAmount != null ? (
+            <small>
+              {pricingDetails.comparisonLabel} {formatCurrency(pricingDetails.comparisonAmount)}
+            </small>
+          ) : null}
         </article>
         <article className="admin-detail-overview-card">
           <span className="admin-detail-overview-label">Referral</span>
@@ -177,7 +190,7 @@ export default async function EnquiryDetailPage({ params, searchParams }) {
         <article className="admin-detail-overview-card">
           <span className="admin-detail-overview-label">Commission</span>
           <strong className="admin-detail-overview-value">
-            {enquiry.commissionAmount != null ? `$${enquiry.commissionAmount}` : "—"}
+            {formatCurrency(enquiry.commissionAmount)}
           </strong>
           <small>{commissionStateLabel}</small>
         </article>
@@ -223,29 +236,24 @@ export default async function EnquiryDetailPage({ params, searchParams }) {
         <section className="admin-detail-section">
           <h2 className="admin-detail-section-title">Pricing</h2>
           <dl className="admin-detail-list">
-            <Field
-              label="Original Amount"
-              value={enquiry.originalAmount != null ? `$${enquiry.originalAmount}` : null}
-            />
-            <Field
-              label="Discount Amount"
-              value={enquiry.discountAmount != null ? `$${enquiry.discountAmount}` : null}
-            />
-            <Field
-              label="Final Amount"
-              value={enquiry.finalAmount != null ? `$${enquiry.finalAmount}` : null}
-            />
+            {pricingDetails.rows.map((row) => (
+              <Field
+                key={row.label}
+                label={row.label}
+                value={formatCurrency(row.amount)}
+              />
+            ))}
             <Field
               label="Commission Base"
               value={
                 enquiry.commissionBaseAmount != null
-                  ? `$${enquiry.commissionBaseAmount}`
+                  ? formatCurrency(enquiry.commissionBaseAmount)
                   : null
               }
             />
             <Field
               label="Commission Amount"
-              value={enquiry.commissionAmount != null ? `$${enquiry.commissionAmount}` : null}
+              value={enquiry.commissionAmount != null ? formatCurrency(enquiry.commissionAmount) : null}
             />
             <Field label="Commission State" value={commissionStateLabel} />
           </dl>

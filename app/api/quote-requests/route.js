@@ -51,16 +51,10 @@ export async function POST(request) {
       referenceId,
     });
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Something went wrong while saving your request.";
-
+    console.error("[quote-requests] Unexpected error:", error);
     return NextResponse.json(
-      {
-        error: message,
-      },
-      { status: /discount code/i.test(message) ? 400 : 500 },
+      { error: "Something went wrong while saving your request." },
+      { status: 500 },
     );
   }
 }

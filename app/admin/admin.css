@@ -471,6 +471,70 @@
   color: var(--ad-text-muted);
 }
 
+.admin-referral-cell {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-referral-pill {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-referral-pill--linked {
+  background: rgba(15, 107, 90, 0.12);
+  color: var(--ad-accent);
+}
+
+.admin-referral-pill--organic {
+  background: rgba(107, 114, 128, 0.12);
+  color: var(--ad-text-muted);
+}
+
+.admin-amount-card {
+  display: grid;
+  gap: 10px;
+  min-width: 180px;
+}
+
+.admin-amount-card-main {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-amount-card-main span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ad-text-muted);
+}
+
+.admin-amount-card-main strong {
+  font-size: 1.08rem;
+  letter-spacing: -0.03em;
+  color: var(--ad-text);
+}
+
+.admin-amount-card-grid {
+  display: grid;
+  gap: 5px;
+}
+
+.admin-amount-card-grid span {
+  color: var(--ad-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
 .admin-enquiry-cards {
   display: none;
 }
@@ -552,6 +616,46 @@
 .admin-enquiry-card-block small {
   color: var(--ad-text-muted);
   line-height: 1.45;
+}
+
+.admin-enquiry-card-block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-enquiry-card-block-head em {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-enquiry-card-block-head em.is-linked {
+  background: rgba(15, 107, 90, 0.12);
+  color: var(--ad-accent);
+}
+
+.admin-enquiry-card-block-head em.is-organic {
+  background: rgba(107, 114, 128, 0.12);
+  color: var(--ad-text-muted);
+}
+
+.admin-finance-inline {
+  display: grid;
+  gap: 5px;
+}
+
+.admin-enquiry-card-block--finance strong {
+  font-size: 1.22rem;
+  letter-spacing: -0.03em;
 }
 
 .admin-enquiry-card-actions {

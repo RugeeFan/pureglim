@@ -12,13 +12,9 @@ export async function POST(request) {
     const code = await ensureReferrerReferralCode(session.payload.sub);
     return NextResponse.json({ success: true, code });
   } catch (error) {
+    console.error("[referral/code/generate] Unexpected error:", error);
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "We couldn't generate your code right now.",
-      },
+      { error: "We couldn't generate your code right now." },
       { status: 500 },
     );
   }

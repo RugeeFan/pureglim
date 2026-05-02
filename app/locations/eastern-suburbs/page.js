@@ -26,7 +26,7 @@ const serviceSchema = {
     "@type": "Offer",
     priceSpecification: {
       "@type": "PriceSpecification",
-      minPrice: "150",
+      minPrice: "110",
       priceCurrency: "AUD",
     },
   },
@@ -68,14 +68,14 @@ export default function EasternSuburbsPage() {
         <h2 className="rp-h2">Regular home cleaning</h2>
         <p className="rp-body">
           Our regular service covers kitchen surfaces and sink, bathroom wipe-down, vacuuming,
-          mopping, dusting, and general tidying. Fortnightly is the most popular frequency;
-          weekly bookings receive a 10% discount.
+          mopping, dusting, and general tidying. Fortnightly is the most popular frequency,
+          with weekly starting from $110 and first visits priced a little higher.
         </p>
         <div className="rp-price-grid">
-          <div className="rp-price-card"><strong>$150</strong><span>1 bedroom</span></div>
-          <div className="rp-price-card"><strong>$185</strong><span>2 bedrooms</span></div>
-          <div className="rp-price-card"><strong>$225</strong><span>3 bedrooms</span></div>
-          <div className="rp-price-card"><strong>$275</strong><span>4 bedrooms+</span></div>
+          <div className="rp-price-card"><strong>$130</strong><span>1 bedroom</span></div>
+          <div className="rp-price-card"><strong>$140</strong><span>2 bedrooms</span></div>
+          <div className="rp-price-card"><strong>$165</strong><span>3 bedrooms</span></div>
+          <div className="rp-price-card"><strong>$200</strong><span>4 bedrooms+</span></div>
         </div>
       </section>
 
@@ -87,13 +87,15 @@ export default function EasternSuburbsPage() {
           exteriors, bathroom mould treatment, and all the spots regular cleaning skips.
         </p>
         <p className="rp-body">
-          Add-ons available: carpet cleaning ($70), oven ($65), fridge ($35), interior windows ($45).
-          If anything within our scope is raised at inspection, we return at no charge.
+          Add-ons like carpet steam cleaning, oven cleaning, fridge cleaning, blinds, stain
+          treatment, and mould removal can be added in the quote flow. If anything within our
+          scope is raised at inspection, we return at no charge.
         </p>
         <div className="rp-price-grid">
-          <div className="rp-price-card"><strong>$340</strong><span>1 bedroom</span></div>
-          <div className="rp-price-card"><strong>$430</strong><span>2 bedrooms</span></div>
-          <div className="rp-price-card"><strong>$520</strong><span>3 bedrooms</span></div>
+          <div className="rp-price-card"><strong>$280</strong><span>1 bedroom</span></div>
+          <div className="rp-price-card"><strong>$320</strong><span>2 bedrooms</span></div>
+          <div className="rp-price-card"><strong>$360</strong><span>3 bedrooms</span></div>
+          <div className="rp-price-card"><strong>$530</strong><span>4 bedrooms+</span></div>
         </div>
       </section>
 

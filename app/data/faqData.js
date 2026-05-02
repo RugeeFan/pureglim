@@ -2,7 +2,7 @@ export const faqs = [
   {
     question: "How much does house cleaning cost in Sydney?",
     answer:
-      "Regular house cleaning with PureGlim starts from $150 for a 1-bedroom home (fortnightly), $185 for 2 bedrooms, $225 for 3 bedrooms, and $275 for 4+ bedrooms. Weekly bookings receive a 10% discount. One-off cleans are also available, starting from $180 for a 1-bedroom home. Additional bathrooms add $20–$60 depending on count. You can get an instant price on our website — no call required.",
+      "Regular house cleaning with PureGlim starts from $110 weekly, $130 fortnightly, $150 monthly, or $170 for a one-time / first visit on a 1-bedroom, 1-bathroom home. Fortnightly starting rates are $130 for 1 bedroom, $140 for 2 bedrooms, $165 for 3 bedrooms, and $200 for 4-bedroom homes. Larger homes, extra bathrooms, and first visits are quoted a little higher. You can get an instant price on our website — no call required.",
   },
   {
     question: "What's included in a regular clean?",
@@ -12,7 +12,7 @@ export const faqs = [
   {
     question: "How much does end of lease (bond) cleaning cost in Sydney?",
     answer:
-      "End of lease cleaning starts from $340 for a 1-bedroom home, $430 for 2 bedrooms, $520 for 3 bedrooms, and $620+ for 4+ bedrooms. Additional bathrooms add $35–$105. Optional add-ons include carpet cleaning ($70), oven cleaning ($65), fridge cleaning ($35), interior windows ($45), microwave ($20), and laundry area ($30). You can build your estimate on our website.",
+      "End of lease cleaning starts from $280 for a 1-bedroom home, $320 for 2 bedrooms, $360 for 3 bedrooms, $530 for 4 bedrooms, and $620 for 5+ bedroom homes. Additional bathrooms add $80-$150 depending on count. Optional extras like carpet steam cleaning, oven cleaning, fridge cleaning, blind cleaning, mould removal, and stain treatment can be added in the online quote.",
   },
   {
     question: "Do you clean in Bondi and the Eastern Suburbs?",
@@ -47,7 +47,7 @@ export const faqs = [
   {
     question: "How often should I have my home cleaned?",
     answer:
-      "Weekly suits busy households and families who want the place consistently tidy. Fortnightly is our most popular option — it's enough to keep things in good shape without feeling like constant disruption. Monthly works well as a supplement to your own routine, or for lower-traffic homes. Pricing reflects the frequency: weekly gets a 10% discount, monthly costs a little more than fortnightly.",
+      "Weekly suits busy households and families who want the place consistently tidy. Fortnightly is our most popular option — it's enough to keep things in good shape without feeling like constant disruption. Monthly works well as a supplement to your own routine, or for lower-traffic homes. Pricing steps up by visit type: weekly is the lowest base rate, fortnightly sits in the middle, monthly is a little higher, and one-time / first visits are the highest because they take longer.",
   },
   {
     question: "Do I need to be home during the clean?",
@@ -57,7 +57,7 @@ export const faqs = [
   {
     question: "Can I book a one-off clean rather than a recurring service?",
     answer:
-      "Yes. One-off cleans are available — select 'One-time' as your frequency when getting a quote. One-off prices start from $180 for a 1-bedroom home and are slightly higher than recurring rates, since there's no ongoing schedule. End of lease cleaning is always a one-off service by nature.",
+      "Yes. One-off cleans are available — select 'One-time' as your frequency when getting a quote. One-off prices start from $170 for a 1-bedroom, 1-bathroom home and are slightly higher than recurring rates, since there's no ongoing schedule. End of lease cleaning is always a one-off service by nature.",
   },
 ];
 
