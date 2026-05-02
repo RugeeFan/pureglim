@@ -3,17 +3,9 @@ import { redirect } from "next/navigation";
 import { getSession } from "../../../lib/auth/session";
 import { getAllReferrersForAdmin } from "../../../lib/services/referrers";
 import { maskAccountNumber, maskBsb } from "../../../lib/utils/maskBank";
+import { formatCurrencyOrDash as formatCurrency } from "../../../lib/format/currency";
 
 export const metadata = { title: "Referrers — PureGlim Admin" };
-
-function formatCurrency(amount) {
-  if (amount == null) return "—";
-  return new Intl.NumberFormat("en-AU", {
-    style: "currency",
-    currency: "AUD",
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 function formatDate(date) {
   return new Intl.DateTimeFormat("en-AU", {

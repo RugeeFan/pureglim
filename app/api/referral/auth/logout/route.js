@@ -1,15 +1,6 @@
 import { NextResponse } from "next/server";
 import { REFERRER_COOKIE_NAME, REFERRER_PENDING_COOKIE_NAME } from "../../../../../lib/auth/referrerSession";
-
-function buildCookieOptions(maxAgeSeconds) {
-  return {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: maxAgeSeconds,
-  };
-}
+import { buildAuthCookieOptions as buildCookieOptions } from "../../../../../lib/auth/cookies";
 
 export async function POST() {
   const response = NextResponse.json({ success: true });

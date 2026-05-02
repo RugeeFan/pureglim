@@ -10,15 +10,7 @@ import {
 import { getClientIp } from "../../../../../lib/utils/clientIp";
 import { referrerAuthPasswordLoginSchema } from "../../../../../lib/validation/referrerAuth";
 
-function buildCookieOptions(maxAgeSeconds) {
-  return {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: maxAgeSeconds,
-  };
-}
+import { buildAuthCookieOptions as buildCookieOptions } from "../../../../../lib/auth/cookies";
 
 // Precomputed scrypt of "login-password-timing-equalizer" — hardcoded so the
 // "no user" / "user has no password" paths run scrypt against this hash and

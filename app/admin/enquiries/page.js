@@ -20,6 +20,7 @@ import {
   getBookingPricingDetails,
 } from "../../../lib/services/bookingMeta";
 import DeleteAllButton from "./DeleteAllButton";
+import { formatCurrencyOrDash as formatCurrency } from "../../../lib/format/currency";
 
 export const metadata = { title: "Enquiries — PureGlim Admin" };
 
@@ -30,15 +31,6 @@ function formatDate(date) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(date));
-}
-
-function formatCurrency(amount) {
-  if (amount == null) return "—";
-  return new Intl.NumberFormat("en-AU", {
-    style: "currency",
-    currency: "AUD",
-    maximumFractionDigits: 0,
-  }).format(amount);
 }
 
 function renderPricingRows(pricingDetails) {

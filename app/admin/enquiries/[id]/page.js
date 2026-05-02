@@ -19,6 +19,7 @@ import {
   getBookingPricingDetails,
 } from "../../../../lib/services/bookingMeta";
 import DeleteButton from "./DeleteButton";
+import { formatCurrencyOrDash as formatCurrency } from "../../../../lib/format/currency";
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
@@ -98,15 +99,6 @@ function formatDate(date) {
     dateStyle: "long",
     timeStyle: "short",
   }).format(new Date(date));
-}
-
-function formatCurrency(amount) {
-  if (amount == null) return "—";
-  return new Intl.NumberFormat("en-AU", {
-    style: "currency",
-    currency: "AUD",
-    maximumFractionDigits: 0,
-  }).format(amount);
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────

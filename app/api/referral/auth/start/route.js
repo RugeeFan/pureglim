@@ -10,16 +10,7 @@ import { startPhoneVerification } from "../../../../../lib/services/twilioVerify
 import { hashPassword } from "../../../../../lib/utils/password";
 import { getClientIp } from "../../../../../lib/utils/clientIp";
 import { referrerAuthStartSchema } from "../../../../../lib/validation/referrerAuth";
-
-function buildCookieOptions(maxAgeSeconds) {
-  return {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: maxAgeSeconds,
-  };
-}
+import { buildAuthCookieOptions as buildCookieOptions } from "../../../../../lib/auth/cookies";
 
 export async function POST(request) {
   try {

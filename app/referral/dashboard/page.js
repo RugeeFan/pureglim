@@ -12,18 +12,10 @@ import BankDetailsForm from "../BankDetailsForm";
 import GenerateReferralCodeButton from "../GenerateReferralCodeButton";
 import ReferrerLogoutButton from "../ReferrerLogoutButton";
 import ReferralShareCard from "../ReferralShareCard";
+import { formatCurrencyOrDash as formatCurrency } from "../../../lib/format/currency";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-
-function formatCurrency(amount) {
-  if (amount == null) return "—";
-  return new Intl.NumberFormat("en-AU", {
-    style: "currency",
-    currency: "AUD",
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 function formatDate(date) {
   return new Intl.DateTimeFormat("en-AU", {
