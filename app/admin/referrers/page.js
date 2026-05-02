@@ -110,7 +110,7 @@ export default async function AdminReferrersPage() {
             </table>
           </div>
 
-          <div className="admin-partner-cards">
+          <div className="admin-referrer-cards">
             {referrers.map((referrer) => {
               const earnedCommission = referrer.referrals.reduce(
                 (sum, r) => sum + (r.commissionAmount ?? 0),

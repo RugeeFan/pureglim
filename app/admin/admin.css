@@ -539,7 +539,7 @@
   display: none;
 }
 
-.admin-partner-cards {
+.admin-referrer-cards {
   display: none;
 }
 
@@ -1109,7 +1109,7 @@
     display: block;
   }
 
-  .admin-partner-cards {
+  .admin-referrer-cards {
     display: block;
   }
 
