@@ -342,7 +342,7 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
       setDiscountState({
         status: "valid",
         code: result.code,
-        referrerName: result.referrerName,
+        referrerName: result.referrerFirstName ?? result.referrerName ?? "",
         discountAmount: result.discountAmount,
         originalAmount: result.originalAmount,
         finalAmount: result.finalAmount,
@@ -356,7 +356,7 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
       if (persistOnSuccess) {
         persistReferralAttribution({
           code: result.code,
-          referrerName: result.referrerName,
+          referrerName: result.referrerFirstName ?? result.referrerName ?? "",
         });
       }
       return true;
@@ -1267,11 +1267,16 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
 
                   <div className="result-success-header">
                     <h2 className="result-success-title">
-                      You&apos;re all set.
+                      {submissionResult?.duplicate
+                        ? "We've already got your booking."
+                        : "You're all set."}
                     </h2>
                     <p className="result-success-ref">
                       {submissionResult?.referenceId ? `Ref ${submissionResult.referenceId} — ` : ""}
-                      We&apos;ll be in touch within 24 hours to confirm everything.
+                      {submissionResult?.duplicate
+                        ? submissionResult.message ||
+                          "We've already received a booking from this number. We'll contact you within 24 hours."
+                        : "We'll be in touch within 24 hours to confirm everything."}
                     </p>
                     <p className="result-success-sub">
                       Or reach us directly below.

@@ -35,13 +35,16 @@ export async function POST(request) {
       originalAmount: parsed.data.amount ?? null,
     });
 
-    // Note: referrerName is intentionally NOT returned. Exposing it on this
-    // unauthenticated endpoint would let an attacker enumerate all issued
-    // referral codes against the small alphabet space and harvest the full
-    // names (and previously phone-fallback) of every registered referrer.
+    // Public API surface is intentionally narrow:
+    //   - referrerFirstName: first given name only (e.g. "Alice"). An attacker
+    //     who scrapes /code/validate against the random-int code space gets
+    //     a list of common given names — weak identifier, no surname or phone.
+    //   - referrerName (full): NOT returned. Surname + phone fallback would
+    //     let the same scraper rebuild full identities.
     return NextResponse.json({
       valid: true,
       code: summary.code,
+      referrerFirstName: summary.referrerFirstName,
       discountAmount: summary.discountAmount,
       originalAmount: summary.originalAmount,
       finalAmount: summary.finalAmount,

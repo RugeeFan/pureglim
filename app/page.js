@@ -145,12 +145,12 @@ export default function Home() {
         if (response.ok && result.valid) {
           persistReferralAttribution({
             code: result.code,
-            referrerName: result.referrerName,
+            referrerName: result.referrerFirstName ?? result.referrerName ?? "",
           });
           setReferralNotice({
             type: "success",
             message: "Referral discount applied",
-            referrerName: result.referrerName || "",
+            referrerName: result.referrerFirstName ?? result.referrerName ?? "",
           });
           openBookingIfRequested();
           return;

@@ -22,7 +22,23 @@ export async function POST(request) {
       );
     }
 
-    const createdRequest = await createQuoteRequest(parsed.data);
+    const result = await createQuoteRequest(parsed.data);
+
+    if (result.duplicate) {
+      // Same phone has an active booking in the last 14 days. Don't insert
+      // a second row, don't re-send emails — just tell the customer we
+      // already have their request and someone will be in touch.
+      return NextResponse.json({
+        success: true,
+        duplicate: true,
+        id: result.existingId,
+        referenceId: buildQuoteRequestReference(result.existingId),
+        message:
+          "We've already received a booking from this number. We'll contact you within 24 hours.",
+      });
+    }
+
+    const createdRequest = result.booking;
     const referenceId = buildQuoteRequestReference(createdRequest.id);
 
     try {
