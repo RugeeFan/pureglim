@@ -127,7 +127,12 @@ export default async function EnquiriesPage({ searchParams }) {
 
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page ?? "1", 10));
-  const search = (params.q ?? "").trim();
+  // Cap server-side at 80 chars. Long search strings hit Prisma's
+  // case-insensitive `contains` (sequential ILIKE on customerName / email /
+  // phone / referralCode); on a large enquiry table that's a slow scan
+  // attacker can trigger from any logged-in admin session. 80 chars is
+  // generous for real-world searches and bounds the worst case.
+  const search = (params.q ?? "").trim().slice(0, 80);
   const statusFilter = params.status ?? "";
 
   const { items: enquiries, total } = await getQuoteRequests({

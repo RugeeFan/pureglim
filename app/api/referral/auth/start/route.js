@@ -110,7 +110,7 @@ export async function POST(request) {
       success: true,
       phone,
       mock: Boolean(verification.mock),
-      ...(verification.mock && process.env.NODE_ENV !== "production"
+      ...(verification.mock && process.env.NODE_ENV === "development"
         ? { devCode: verification.devCode }
         : {}),
     });
