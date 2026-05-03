@@ -317,6 +317,7 @@ export default async function ReferralDashboardPage() {
                               className={`referral-status-badge referral-status-${booking.status
                                 .toLowerCase()
                                 .replaceAll("_", "-")}`}
+                              title={STATUS_DESCRIPTIONS[booking.status]}
                             >
                               {booking.statusLabel}
                             </span>
