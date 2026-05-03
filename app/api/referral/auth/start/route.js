@@ -61,8 +61,13 @@ export async function POST(request) {
     // 409/404 differentiation here would let an attacker enumerate registered
     // phone numbers without ever owning the SIM. We sign a "consistent" flag
     // into the pending JWT and the verify route enforces it after OTP.
-    const existingReferrer = await getReferrerByPhone(phone);
+    // For mode "upsert" the operation always succeeds regardless of account
+    // existence, so consistent is always true and we always send a real SMS.
+    const existingReferrer = parsed.data.mode !== "upsert"
+      ? await getReferrerByPhone(phone)
+      : null;
     const consistent =
+      parsed.data.mode === "upsert" ||
       (parsed.data.mode === "register" && !existingReferrer) ||
       (parsed.data.mode === "login" && Boolean(existingReferrer));
 

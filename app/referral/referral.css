@@ -852,3 +852,116 @@
     flex: 1 1 auto;
   }
 }
+
+/* ─── Onboarding banners (light page context, above hero grid) ─── */
+
+.referral-onboarding-banner {
+  background: rgba(19, 34, 31, 0.05);
+  border: 1px solid rgba(19, 34, 31, 0.1);
+  border-radius: 14px;
+  padding: 14px 20px;
+  font-size: 0.96rem;
+  color: rgba(19, 34, 31, 0.8);
+  line-height: 1.55;
+}
+
+.referral-onboarding-banner a {
+  color: #13221f;
+  font-weight: 500;
+}
+
+.referral-onboarding-banner--earnings {
+  background: rgba(180, 100, 0, 0.07);
+  border-color: rgba(180, 100, 0, 0.18);
+  color: rgba(100, 45, 0, 0.9);
+}
+
+.referral-onboarding-banner--earnings strong,
+.referral-onboarding-banner--earnings a {
+  color: #6b3200;
+}
+
+/* ─── Onboarding step card (inside dark panel-highlight) ─── */
+
+.referral-onboarding-step {
+  display: grid;
+  gap: 16px;
+}
+
+.referral-onboarding-step-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(244, 248, 247, 0.14);
+  color: rgba(244, 248, 247, 0.85);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* ─── Social share buttons (inside dark panel-highlight) ─── */
+
+.referral-social-actions {
+  display: grid;
+  gap: 10px;
+  padding-top: 12px;
+  margin-top: 8px;
+  border-top: 1px solid rgba(244, 248, 247, 0.12);
+}
+
+.referral-social-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.referral-social-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid rgba(244, 248, 247, 0.28);
+  background: rgba(244, 248, 247, 0.1);
+  color: rgba(244, 248, 247, 0.9);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.referral-social-btn:hover:not([aria-disabled="true"]):not(:disabled) {
+  background: rgba(244, 248, 247, 0.18);
+  border-color: rgba(244, 248, 247, 0.44);
+}
+
+.referral-social-btn:disabled,
+.referral-social-btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ─── PayID hint text ─── */
+
+.referral-form-hint-inline {
+  color: rgba(19, 34, 31, 0.55);
+  font-size: 0.86rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .referral-social-btns {
+    gap: 6px;
+  }
+
+  .referral-social-btn {
+    font-size: 0.84rem;
+    padding: 6px 12px;
+  }
+}

@@ -313,7 +313,7 @@
   box-shadow: 0 0 0 2px rgba(15, 107, 90, 0.12);
 }
 
-/* ── Status cell — badge + prev/next nav ─────────────────────────────────── */
+/* ── Status cell — badge + advance button ────────────────────────────────── */
 .admin-status-cell {
   display: flex;
   flex-direction: column;
@@ -321,38 +321,25 @@
   align-items: flex-start;
 }
 
-.admin-status-nav {
-  display: flex;
-  gap: 4px;
-}
-
-.admin-status-nav-placeholder {
-  display: inline-block;
-  width: 26px;
-}
-
-.admin-status-nav-btn {
-  height: 26px;
-  width: 26px;
-  display: flex;
+.admin-advance-btn {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: var(--ad-radius-sm);
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition: opacity 120ms;
-}
-.admin-status-nav-btn:hover { opacity: 0.8; }
-
-.admin-status-nav-btn--next {
+  padding: 4px 10px;
   background: var(--ad-accent);
   color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  transition: background 150ms;
+  font-family: inherit;
 }
 
-.admin-status-nav-btn--undo {
-  background: var(--ad-border-strong);
-  color: var(--ad-text-muted);
+.admin-advance-btn:hover {
+  background: var(--ad-accent-hover);
 }
 
 /* ── Table ───────────────────────────────────────────────────────────────── */
@@ -744,13 +731,6 @@
   gap: 16px;
 }
 
-.admin-status-form {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-}
-
 .admin-form-group {
   display: flex;
   flex-direction: column;
@@ -925,6 +905,107 @@
   color: var(--ad-text-muted);
 }
 
+/* ── Booking status stepper (detail page) ────────────────────────────────── */
+.booking-stepper-track {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.booking-stepper-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  gap: 8px;
+  min-width: 70px;
+}
+
+.booking-stepper-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 13px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--ad-border-strong);
+  z-index: 0;
+}
+
+.booking-stepper-step.is-done:not(:last-child)::after {
+  background: var(--ad-accent);
+}
+
+.booking-stepper-node {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 2px solid var(--ad-border-strong);
+  background: var(--ad-bg);
+  color: var(--ad-text-muted);
+  position: relative;
+  z-index: 1;
+  transition: background 150ms, border-color 150ms, color 150ms;
+}
+
+.booking-stepper-step.is-done .booking-stepper-node {
+  background: var(--ad-accent);
+  border-color: var(--ad-accent);
+  color: #fff;
+}
+
+.booking-stepper-step.is-current .booking-stepper-node {
+  border-color: var(--ad-accent);
+  background: var(--ad-surface);
+  color: var(--ad-accent);
+  box-shadow: 0 0 0 3px rgba(15, 107, 90, 0.12);
+}
+
+.booking-stepper-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--ad-text-muted);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.booking-stepper-step.is-done .booking-stepper-label,
+.booking-stepper-step.is-current .booking-stepper-label {
+  color: var(--ad-text);
+  font-weight: 600;
+}
+
+.booking-stepper-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.booking-stepper-revert-btn {
+  background: none;
+  border: none;
+  color: var(--ad-text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.booking-stepper-revert-btn:hover {
+  color: var(--ad-danger);
+}
+
 /* ── Settings page ───────────────────────────────────────────────────────── */
 .admin-settings-form {
   max-width: 680px;
@@ -1065,11 +1146,6 @@
     grid-template-columns: 1fr 1fr;
   }
 
-  .admin-status-form {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
   .admin-page-header {
     flex-direction: column;
     align-items: flex-start;
@@ -1139,11 +1215,8 @@
   }
 
   .admin-enquiry-open,
-  .admin-status-nav {
+  .admin-advance-btn {
     width: 100%;
-  }
-
-  .admin-status-nav {
-    justify-content: space-between;
+    justify-content: center;
   }
 }
