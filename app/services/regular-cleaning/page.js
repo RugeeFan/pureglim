@@ -2,9 +2,19 @@ import VideoShell from "../../components/VideoShell";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Regular House Cleaning Sydney — From $110 | PureGlim",
+  title: { absolute: "Regular House Cleaning Sydney — From $110 | PureGlim" },
   description:
-    "Get an estimate online. Reliable fortnightly or weekly home cleaning across Sydney. Kitchen, bathrooms, vacuuming, mopping, and more — consistent every visit.",
+    "Get an instant cleaning estimate online. Reliable weekly and fortnightly house cleaning across Sydney, with regular routes through the Eastern Suburbs and North Shore.",
+  alternates: { canonical: "https://pureglim.com.au/services/regular-cleaning" },
+  openGraph: {
+    type: "website",
+    url: "https://pureglim.com.au/services/regular-cleaning",
+    siteName: "PureGlim",
+    title: "Regular House Cleaning Sydney — From $110 | PureGlim",
+    description:
+      "Get an instant cleaning estimate online. Reliable weekly and fortnightly house cleaning across Sydney, with regular routes through the Eastern Suburbs and North Shore.",
+    locale: "en_AU",
+  },
 };
 
 const serviceSchema = {

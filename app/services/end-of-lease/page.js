@@ -2,9 +2,19 @@ import VideoShell from "../../components/VideoShell";
 import Link from "next/link";
 
 export const metadata = {
-  title: "End of Lease Cleaning Sydney — From $280 | PureGlim",
+  title: { absolute: "End of Lease Cleaning Sydney — From $280 | PureGlim" },
   description:
-    "Get an estimate online. Bond cleaning in Sydney to inspection standard. Inside cupboards, skirting boards, appliances, and mould treatment. Free re-clean if anything is raised at inspection.",
+    "Get an instant cleaning estimate online. Bond and end-of-lease cleaning in Sydney to inspection standard — inside cupboards, skirting, appliances, and mould treatment, with a free re-clean if anything in scope is raised.",
+  alternates: { canonical: "https://pureglim.com.au/services/end-of-lease" },
+  openGraph: {
+    type: "website",
+    url: "https://pureglim.com.au/services/end-of-lease",
+    siteName: "PureGlim",
+    title: "End of Lease Cleaning Sydney — From $280 | PureGlim",
+    description:
+      "Get an instant cleaning estimate online. Bond and end-of-lease cleaning in Sydney to inspection standard, with a free re-clean if anything in scope is raised.",
+    locale: "en_AU",
+  },
 };
 
 const serviceSchema = {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Phone, Star } from "lucide-react";
 import { navItems } from "./data/constants";
 import AboutPanel from "./components/AboutPanel";
@@ -456,6 +457,19 @@ export default function Home() {
           />
         </div>
 
+        <div className="page-seo-links" aria-label="Services and areas">
+          <span className="page-seo-label">Services</span>
+          <Link href="/services/regular-cleaning">Regular cleaning</Link>
+          <span className="page-meta-dot">·</span>
+          <Link href="/services/end-of-lease">End of lease</Link>
+          <span className="page-meta-dot">·</span>
+          <Link href="/services/commercial">Commercial</Link>
+          <span className="page-seo-divider" aria-hidden="true">|</span>
+          <span className="page-seo-label">Areas</span>
+          <Link href="/locations/eastern-suburbs">Eastern Suburbs</Link>
+          <span className="page-meta-dot">·</span>
+          <Link href="/locations/northern-suburbs">North Shore</Link>
+        </div>
         <div className="page-meta" aria-hidden="true">
           <span>© 2026 PureGlim</span>
           <span className="page-meta-dot">·</span>

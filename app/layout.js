@@ -25,18 +25,19 @@ export const metadata = {
     template: "%s | PureGlim",
   },
   description:
-    "Get an estimate online. Reliable home and office cleaning across Sydney — done with care, detail, and consistency. Regular cleaning, end of lease, and commercial.",
+    "Get an instant cleaning estimate online. Reliable home, end-of-lease, and office cleaning across Sydney — with regular routes through the Eastern Suburbs and North Shore.",
   authors: [{ name: "PureGlim" }],
   creator: "PureGlim",
   publisher: "PureGlim",
   formatDetection: { telephone: true, email: true },
+  alternates: { canonical: "https://pureglim.com.au" },
   openGraph: {
     type: "website",
     url: "https://pureglim.com.au",
     siteName: "PureGlim",
     title: "PureGlim | Reliable House Cleaning in Sydney",
     description:
-      "Get an estimate online. Home and office cleaning across Sydney done with care and consistency. Regular cleaning, end of lease, and commercial.",
+      "Get an instant cleaning estimate online. Reliable home, end-of-lease, and office cleaning across Sydney — with regular routes through the Eastern Suburbs and North Shore.",
     locale: "en_AU",
     images: [
       {
@@ -51,7 +52,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "PureGlim — Reliable House Cleaning in Sydney",
     description:
-      "Get an estimate online. Home and office cleaning across Sydney done with care and consistency.",
+      "Get an instant cleaning estimate online. Reliable home, end-of-lease, and office cleaning across Sydney.",
     images: ["/og-image.jpg"],
   },
   robots: {
