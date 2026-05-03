@@ -17,6 +17,13 @@ import { formatCurrencyOrDash as formatCurrency } from "../../../lib/format/curr
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+const STATUS_DESCRIPTIONS = {
+  NEW: "Booking request received, awaiting confirmation",
+  CONFIRMED: "Booking confirmed — your commission is locked in",
+  COMPLETE: "Cleaning completed — commission pending payment",
+  COMMISSION_PAID: "Commission transferred to your account",
+};
+
 function formatDate(date) {
   return new Intl.DateTimeFormat("en-AU", {
     dateStyle: "medium",
@@ -89,19 +96,48 @@ export default async function ReferralDashboardPage() {
         <ReferrerLogoutButton />
       </div>
 
+      {(() => {
+        const onboardingState =
+          !referrer.referralCode ? "no-code" :
+          stats.pendingCommission > 0 ? "has-earnings" :
+          "has-code";
+
+        if (onboardingState === "has-earnings") {
+          return (
+            <div className="referral-onboarding-banner referral-onboarding-banner--earnings">
+              <strong>You have pending earnings!</strong>
+              {" "}Add your payment details below to receive your commission payout.{" "}
+              <a href="#bank-details">Add payment details →</a>
+            </div>
+          );
+        }
+
+        if (onboardingState === "has-code") {
+          return (
+            <div className="referral-onboarding-banner">
+              Add payment info to receive commissions when you earn them.{" "}
+              <a href="#bank-details">Set up payment details →</a>
+            </div>
+          );
+        }
+
+        return null;
+      })()}
+
       <section className="referral-hero-grid">
         <article className="referral-panel referral-panel-highlight referral-code-panel">
           <span className="referral-panel-label">Share your referral</span>
           {referrer.referralCode ? (
             <ReferralShareCard referralCode={referrer.referralCode} />
           ) : (
-            <>
+            <div className="referral-onboarding-step">
+              <p className="referral-onboarding-step-label">Step 1: Get your referral code</p>
               <p>
-                You haven&apos;t created your referral code yet. Generate it once and
-                it stays tied to your account.
+                Your unique code gives every new customer $20 off their first regular clean.
+                When they complete a booking, you earn commission.
               </p>
               <GenerateReferralCodeButton />
-            </>
+            </div>
           )}
         </article>
 
@@ -125,10 +161,10 @@ export default async function ReferralDashboardPage() {
         </div>
       </section>
 
-      <section className="referral-panel">
+      <section className="referral-panel" id="bank-details">
         <div className="referral-section-header">
           <div>
-            <h2>Bank details</h2>
+            <h2>Payment details</h2>
             <p>
               We use these to transfer your earnings. Your details are stored
               securely and only visible to you and PureGlim.
@@ -137,11 +173,12 @@ export default async function ReferralDashboardPage() {
         </div>
         <BankDetailsForm
           current={
-            referrer.bsb
+            referrer.bsb || referrer.payId
               ? {
                   bankAccountName: referrer.bankAccountName,
                   bsb: referrer.bsb,
                   bankAccountNumber: referrer.bankAccountNumber,
+                  payId: referrer.payId,
                 }
               : null
           }
@@ -178,6 +215,7 @@ export default async function ReferralDashboardPage() {
                           className={`referral-status-badge referral-status-${booking.status
                             .toLowerCase()
                             .replaceAll("_", "-")}`}
+                          title={STATUS_DESCRIPTIONS[booking.status]}
                         >
                           {booking.statusLabel}
                         </span>

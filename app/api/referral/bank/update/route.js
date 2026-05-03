@@ -32,19 +32,27 @@ export async function PUT(request) {
       );
     }
 
-    const bsb = normalizeBsb(parsed.data.bsb);
-    if (!bsb) {
-      return NextResponse.json(
-        { error: "Please enter a valid BSB (e.g. 062-000)." },
-        { status: 400 },
-      );
+    if (parsed.data.paymentMethod === "bsb") {
+      const bsb = normalizeBsb(parsed.data.bsb);
+      if (!bsb) {
+        return NextResponse.json(
+          { error: "Please enter a valid BSB (e.g. 062-000)." },
+          { status: 400 },
+        );
+      }
+      await updateReferrerBankDetails(session.payload.sub, {
+        paymentMethod: "bsb",
+        bankAccountName: parsed.data.bankAccountName,
+        bsb,
+        bankAccountNumber: parsed.data.bankAccountNumber,
+      });
+    } else {
+      await updateReferrerBankDetails(session.payload.sub, {
+        paymentMethod: "payid",
+        bankAccountName: parsed.data.bankAccountName,
+        payId: parsed.data.payId,
+      });
     }
-
-    await updateReferrerBankDetails(session.payload.sub, {
-      bankAccountName: parsed.data.bankAccountName,
-      bsb,
-      bankAccountNumber: parsed.data.bankAccountNumber,
-    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

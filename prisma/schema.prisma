@@ -38,6 +38,7 @@ model Referrer {
   bankAccountName       String?
   bsb                   String?
   bankAccountNumber     String?
+  payId                 String?
   bankDetailsUpdatedAt  DateTime?
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt

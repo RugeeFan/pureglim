@@ -1,5 +1,5 @@
-import ReferrerAuthForm from "../ReferrerAuthForm";
+import { redirect } from "next/navigation";
 
 export default function ReferralRegisterPage() {
-  return <ReferrerAuthForm mode="register" />;
+  redirect("/referral/login");
 }

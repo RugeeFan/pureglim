@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { ArrowUpRight, Check, Copy, Link2 } from "lucide-react";
-import { QRCodeSVG } from "qrcode.react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowUpRight, Check, Copy, Download, Link2 } from "lucide-react";
+import { QRCodeSVG, QRCodeCanvas } from "qrcode.react";
 import { buildReferralPath } from "../../lib/referral/shared";
 
 export default function ReferralShareCard({ referralCode }) {
   const [origin, setOrigin] = useState("");
   const [copyState, setCopyState] = useState("idle");
+  const canvasRef = useRef(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -27,15 +28,33 @@ export default function ReferralShareCard({ referralCode }) {
   const referralLink = origin ? `${origin}${referralPath}` : referralPath;
   const canCopy = Boolean(origin);
 
+  const whatsappUrl = canCopy
+    ? `https://wa.me/?text=${encodeURIComponent(
+        `Get $20 off your first regular clean with PureGlim! Use my code ${referralCode}: ${referralLink}`,
+      )}`
+    : "#";
+
+  const facebookUrl = canCopy
+    ? `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`
+    : "#";
+
   async function handleCopy() {
     if (!canCopy) return;
-
     try {
       await navigator.clipboard.writeText(referralLink);
       setCopyState("success");
     } catch {
       setCopyState("error");
     }
+  }
+
+  function handleDownload() {
+    if (!canvasRef.current) return;
+    const url = canvasRef.current.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.download = "pureglim-referral-qr.png";
+    a.href = url;
+    a.click();
   }
 
   return (
@@ -98,6 +117,40 @@ export default function ReferralShareCard({ referralCode }) {
                     : "Preparing your referral link…"}
             </span>
           </div>
+
+          <div className="referral-social-actions">
+            <span className="referral-panel-label">Share via</span>
+            <div className="referral-social-btns">
+              <a
+                className="referral-social-btn"
+                href={whatsappUrl}
+                rel="noreferrer"
+                target="_blank"
+                aria-disabled={!canCopy}
+              >
+                WhatsApp
+              </a>
+              <a
+                className="referral-social-btn"
+                href={facebookUrl}
+                rel="noreferrer"
+                target="_blank"
+                aria-disabled={!canCopy}
+              >
+                Facebook
+              </a>
+              <button
+                className="referral-social-btn"
+                disabled={!canCopy}
+                onClick={handleDownload}
+                type="button"
+                title="Download QR code image to post to your Instagram story"
+              >
+                <Download size={14} />
+                Instagram story
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="referral-qr-card referral-share-pane">
@@ -118,6 +171,18 @@ export default function ReferralShareCard({ referralCode }) {
           <small>Customers can scan this to open your referral link instantly.</small>
         </div>
       </div>
+
+      {/* Hidden high-res canvas used for Instagram story download */}
+      {canCopy && (
+        <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }} aria-hidden="true">
+          <QRCodeCanvas
+            ref={canvasRef}
+            value={referralLink}
+            size={400}
+            includeMargin
+          />
+        </div>
+      )}
     </div>
   );
 }
