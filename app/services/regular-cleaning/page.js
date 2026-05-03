@@ -60,6 +60,8 @@ export default function RegularCleaningPage() {
           Regular cleaning suits anyone who wants their home maintained to a consistent standard
           without spending their own time on it — busy professionals, families with young children,
           people returning after a period away, and anyone who simply values having it done properly.
+          Especially well suited to{" "}
+          <Link href="/services/cleaning-for-busy-homes" className="rp-link">busy homes that prefer a steady cleaning rhythm</Link>.
         </p>
         <p className="rp-body">
           Fortnightly is our most popular frequency. Weekly works well for larger households or
