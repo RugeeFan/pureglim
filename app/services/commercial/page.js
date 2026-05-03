@@ -2,9 +2,19 @@ import VideoShell from "../../components/VideoShell";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Commercial & Office Cleaning Sydney | PureGlim",
+  title: { absolute: "Commercial & Office Cleaning Sydney | PureGlim" },
   description:
-    "Get an estimate online. Regular office and workplace cleaning across North Sydney, Chatswood, and the Eastern Suburbs. Scheduled around your hours — no template scope.",
+    "Get an online cleaning estimate for your workplace. Reliable office and commercial cleaning across Sydney, scheduled around your team and business hours.",
+  alternates: { canonical: "https://pureglim.com.au/services/commercial" },
+  openGraph: {
+    type: "website",
+    url: "https://pureglim.com.au/services/commercial",
+    siteName: "PureGlim",
+    title: "Commercial & Office Cleaning Sydney | PureGlim",
+    description:
+      "Get an online cleaning estimate for your workplace. Reliable office and commercial cleaning across Sydney, scheduled around your team and business hours.",
+    locale: "en_AU",
+  },
 };
 
 const serviceSchema = {

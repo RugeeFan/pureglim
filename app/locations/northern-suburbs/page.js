@@ -1,16 +1,29 @@
 import VideoShell from "../../components/VideoShell";
 import Link from "next/link";
+import { getSuburbsForRegion, ROUTES_LINE } from "../../data/seoLocations";
 
 export const metadata = {
-  title: "House Cleaning — Sydney Lower North Shore | PureGlim",
+  title: { absolute: "House Cleaning North Shore & Northern Sydney | PureGlim" },
   description:
-    "Get an estimate online. Home and office cleaning in Mosman, Neutral Bay, North Sydney, Chatswood, and Lane Cove. Reliable, detail-focused service.",
+    "Get an instant cleaning estimate online. Reliable house cleaning across the North Shore and Northern Sydney, with regular routes through Mosman, Chatswood, North Sydney, Neutral Bay, Manly, and nearby areas.",
+  alternates: { canonical: "https://pureglim.com.au/locations/northern-suburbs" },
+  openGraph: {
+    type: "website",
+    url: "https://pureglim.com.au/locations/northern-suburbs",
+    siteName: "PureGlim",
+    title: "House Cleaning North Shore & Northern Sydney | PureGlim",
+    description:
+      "Get an instant cleaning estimate online. Reliable house cleaning across the North Shore and Northern Sydney, with regular routes through Mosman, Chatswood, North Sydney, Neutral Bay, Manly, and nearby areas.",
+    locale: "en_AU",
+  },
 };
+
+const northSuburbSlugs = getSuburbsForRegion("north");
 
 const serviceSchema = {
   "@context": "https://schema.org",
   "@type": "Service",
-  name: "House & Office Cleaning — Lower North Shore Sydney",
+  name: "House & Office Cleaning — North Shore & Northern Sydney",
   provider: { "@id": "https://pureglim.com.au/#business" },
   areaServed: {
     "@type": "GeoCircle",
@@ -33,6 +46,54 @@ const serviceSchema = {
   url: "https://pureglim.com.au/locations/northern-suburbs",
 };
 
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: "https://pureglim.com.au" },
+    { "@type": "ListItem", position: 2, name: "North Shore & Northern Sydney", item: "https://pureglim.com.au/locations/northern-suburbs" },
+  ],
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "Do you only clean on the North Shore?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "No. We serve homes across Sydney. We just have stable regular cleaning routes through the North Shore and Northern Sydney, which is what makes recurring weekly or fortnightly cleaning easy to schedule consistently here.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Do you service strata apartments on the Lower North Shore?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes — we regularly clean strata apartments in Neutral Bay, Cremorne, and Kirribilli. Access arrangements (key lockboxes, building entry codes) are handled at booking.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can I get a quote for a commercial space in North Sydney?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. Commercial quotes are handled individually rather than through the online calculator. Email or call us to arrange a walkthrough, and we'll put together a scope and schedule that fits your space.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How quickly can you book an end-of-lease clean?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "We typically need 3–5 days notice. Urgent bookings are sometimes available — call to check. We aim to accommodate end-of-lease timing wherever possible given the bond implications.",
+      },
+    },
+  ],
+};
+
 export default function NorthernSuburbsPage() {
   return (
     <VideoShell>
@@ -41,13 +102,26 @@ export default function NorthernSuburbsPage() {
         <Link href="/?booking=true" className="rp-top-cta">Book a clean →</Link>
       </div>
 
-      <p className="rp-eyebrow">Sydney Lower North Shore</p>
-      <h1 className="rp-h1">House &amp; office cleaning — Lower North Shore</h1>
+      <p className="rp-eyebrow">Sydney North Shore &amp; Northern Suburbs</p>
+      <h1 className="rp-h1">House cleaning across the North Shore &amp; Northern Sydney</h1>
       <p className="rp-intro">
-        From the prestige harbourside homes of Mosman and Neutral Bay to the offices and studios
-        of North Sydney and Chatswood, the Lower North Shore spans a wide mix of residential and
-        commercial needs. We work across all of it — scheduled around how you actually live and work.
+        {ROUTES_LINE} From the harbourside homes of Mosman and Neutral Bay to the offices of
+        North Sydney and Chatswood, and across to Manly, we work across the full mix of homes
+        and workplaces in the area.
       </p>
+
+      <section className="rp-section">
+        <h2 className="rp-h2">Get an instant cleaning estimate online</h2>
+        <p className="rp-body">
+          Pick your home size, frequency, and any add-ons — the booking flow returns a price
+          straight away. The online estimate is a quick starting point; final pricing depends on
+          home size, condition, access, and what's needed on the first visit.
+        </p>
+        <div className="rp-cta-group">
+          <Link href="/?booking=true" className="rp-cta-primary">Get an instant estimate →</Link>
+          <a href="tel:+61449963099" className="rp-cta-secondary">+61 449 963 099</a>
+        </div>
+      </section>
 
       <section className="rp-section">
         <h2 className="rp-h2">Why Lower North Shore properties choose PureGlim</h2>
@@ -118,18 +192,22 @@ export default function NorthernSuburbsPage() {
       </section>
 
       <section className="rp-section">
-        <h2 className="rp-h2">Areas we cover</h2>
-        <p className="rp-body">We clean regularly across the Lower North Shore, including:</p>
+        <h2 className="rp-h2">Suburbs we visit regularly</h2>
+        <p className="rp-body">
+          Selected North Shore and Northern Sydney pages — each with local notes, pricing, and
+          what to expect:
+        </p>
         <div className="rp-area-tags">
-          {["Mosman", "Neutral Bay", "Cremorne", "Kirribilli", "McMahons Point",
-            "North Sydney", "Crows Nest", "St Leonards", "Chatswood",
-            "Lane Cove", "Willoughby", "Northbridge"].map(s => (
-            <span key={s} className="rp-area-tag">{s}</span>
+          {northSuburbSlugs.map((s) => (
+            <Link key={s.slug} href={`/locations/${s.slug}`} className="rp-area-tag rp-area-tag-link">
+              {s.name}
+            </Link>
           ))}
         </div>
         <p className="rp-body" style={{ marginTop: "16px" }}>
-          Not listed?{" "}
-          <a href="tel:+61449963099" className="rp-link">Call us</a> — we likely cover your area.
+          We also clean regularly through Cremorne, Kirribilli, McMahons Point, Crows Nest,
+          St Leonards, Lane Cove, Willoughby, and Northbridge — and serve the rest of Sydney
+          where the schedule allows.
         </p>
       </section>
 
@@ -180,6 +258,14 @@ export default function NorthernSuburbsPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
     </VideoShell>
   );

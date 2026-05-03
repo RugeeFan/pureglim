@@ -1,11 +1,24 @@
 import VideoShell from "../../components/VideoShell";
 import Link from "next/link";
+import { getSuburbsForRegion, ROUTES_LINE } from "../../data/seoLocations";
 
 export const metadata = {
-  title: "House Cleaning — Sydney Eastern Suburbs | PureGlim",
+  title: { absolute: "House Cleaning Eastern Suburbs Sydney | PureGlim" },
   description:
-    "Get an estimate online. Home and end of lease cleaning in Bondi, Double Bay, Paddington, Vaucluse, Coogee, and Woollahra. Done with care and consistency.",
+    "Get an instant cleaning estimate online. Reliable house cleaning for Eastern Suburbs homes, with regular routes through Bondi, Randwick, Coogee, Maroubra, and nearby areas.",
+  alternates: { canonical: "https://pureglim.com.au/locations/eastern-suburbs" },
+  openGraph: {
+    type: "website",
+    url: "https://pureglim.com.au/locations/eastern-suburbs",
+    siteName: "PureGlim",
+    title: "House Cleaning Eastern Suburbs Sydney | PureGlim",
+    description:
+      "Get an instant cleaning estimate online. Reliable house cleaning for Eastern Suburbs homes, with regular routes through Bondi, Randwick, Coogee, Maroubra, and nearby areas.",
+    locale: "en_AU",
+  },
 };
+
+const easternSuburbSlugs = getSuburbsForRegion("eastern");
 
 const serviceSchema = {
   "@context": "https://schema.org",
@@ -33,6 +46,54 @@ const serviceSchema = {
   url: "https://pureglim.com.au/locations/eastern-suburbs",
 };
 
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: "https://pureglim.com.au" },
+    { "@type": "ListItem", position: 2, name: "Eastern Suburbs", item: "https://pureglim.com.au/locations/eastern-suburbs" },
+  ],
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "Do you only clean in the Eastern Suburbs?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "No. We serve homes across Sydney. We just have stable regular cleaning routes through the Eastern Suburbs, which is what makes recurring weekly or fortnightly cleaning easy to schedule consistently here.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Do I need to be home during the clean?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "No — most clients provide entry instructions and aren't present. We're fully insured and operate with a consistent team so you always know who's coming.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How far in advance do I need to book an end-of-lease clean?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "We recommend at least 3–5 days notice for end-of-lease, especially in peak rental periods (Jan–Feb, Jun–Jul). Express bookings are sometimes possible — call to check availability.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Do you bring your own products and equipment?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes, all products and equipment are supplied. If you have preferences (fragrance-free, specific brands), let us know when booking and we'll accommodate where possible.",
+      },
+    },
+  ],
+};
+
 export default function EasternSuburbsPage() {
   return (
     <VideoShell>
@@ -42,13 +103,24 @@ export default function EasternSuburbsPage() {
       </div>
 
       <p className="rp-eyebrow">Sydney Eastern Suburbs</p>
-      <h1 className="rp-h1">House &amp; apartment cleaning — Eastern Suburbs</h1>
+      <h1 className="rp-h1">House cleaning across Sydney's Eastern Suburbs</h1>
       <p className="rp-intro">
-        The Eastern Suburbs has some of Sydney's most sought-after apartments, terraces, and
-        family homes — and one of its highest concentrations of renters. Whether you need
-        reliable fortnightly upkeep in a Bondi apartment or a thorough end of lease clean
-        before a Randwick inspection, we take care of it without fuss.
+        {ROUTES_LINE} Whether it's reliable fortnightly upkeep in a Bondi apartment or a thorough
+        end-of-lease clean before a Randwick inspection, we take care of it without fuss.
       </p>
+
+      <section className="rp-section">
+        <h2 className="rp-h2">Get an instant cleaning estimate online</h2>
+        <p className="rp-body">
+          Pick your home size, frequency, and any add-ons — the booking flow returns a price
+          straight away. The online estimate is a quick starting point; final pricing depends on
+          home size, condition, access, and what's needed on the first visit.
+        </p>
+        <div className="rp-cta-group">
+          <Link href="/?booking=true" className="rp-cta-primary">Get an instant estimate →</Link>
+          <a href="tel:+61449963099" className="rp-cta-secondary">+61 449 963 099</a>
+        </div>
+      </section>
 
       <section className="rp-section">
         <h2 className="rp-h2">Why Eastern Suburbs properties choose PureGlim</h2>
@@ -100,19 +172,21 @@ export default function EasternSuburbsPage() {
       </section>
 
       <section className="rp-section">
-        <h2 className="rp-h2">Areas we cover</h2>
+        <h2 className="rp-h2">Suburbs we visit regularly</h2>
         <p className="rp-body">
-          We clean regularly across the Eastern Suburbs. Common areas include:
+          Selected Eastern Suburbs pages — each with local notes, pricing, and what to expect:
         </p>
         <div className="rp-area-tags">
-          {["Bondi", "Bondi Beach", "Bondi Junction", "Bronte", "Tamarama", "Coogee",
-            "Clovelly", "Randwick", "Rose Bay", "Bellevue Hill", "Double Bay",
-            "Paddington", "Vaucluse", "Watsons Bay"].map(s => (
-            <span key={s} className="rp-area-tag">{s}</span>
+          {easternSuburbSlugs.map((s) => (
+            <Link key={s.slug} href={`/locations/${s.slug}`} className="rp-area-tag rp-area-tag-link">
+              {s.name}
+            </Link>
           ))}
         </div>
         <p className="rp-body" style={{ marginTop: "16px" }}>
-          Not sure if we reach your street?{" "}
+          We also visit Bondi Beach, Bronte, Tamarama, Clovelly, Rose Bay, Bellevue Hill, Double
+          Bay, Paddington, Vaucluse, and Watsons Bay regularly — and serve the rest of Sydney
+          where the schedule allows. Not sure?{" "}
           <a href="tel:+61449963099" className="rp-link">Call us</a> or{" "}
           <a href="mailto:pureglimsydney@gmail.com" className="rp-link">send a message</a>.
         </p>
@@ -163,6 +237,14 @@ export default function EasternSuburbsPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
     </VideoShell>
   );
