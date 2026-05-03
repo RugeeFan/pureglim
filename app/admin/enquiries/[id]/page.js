@@ -5,6 +5,7 @@ import { getSession } from "../../../../lib/auth/session";
 import {
   getQuoteRequestById,
   updateQuoteRequestStatus,
+  undoQuoteRequestStatus,
   deleteQuoteRequest,
   buildQuoteRequestReference,
   formatServiceTypeLabel,
@@ -13,12 +14,13 @@ import {
 } from "../../../../lib/services/quoteRequests";
 import {
   BOOKING_STATUS_VALUES,
-  formatBookingStatusLabel,
   getAllowedBookingStatusTransitions,
+  getAllowedBookingStatusUndoTargets,
   getBookingStatusDescription,
   getBookingPricingDetails,
 } from "../../../../lib/services/bookingMeta";
 import DeleteButton from "./DeleteButton";
+import BookingStatusStepper from "../BookingStatusStepper";
 import { formatCurrencyOrDash as formatCurrency } from "../../../../lib/format/currency";
 
 export async function generateMetadata({ params }) {
@@ -57,6 +59,29 @@ async function updateStatus(formData) {
       error instanceof Error
         ? error.message
         : "We couldn't update the booking status.";
+    redirect(buildEnquiryDetailPath(id, { error: message }));
+  }
+
+  redirect(buildEnquiryDetailPath(id, { updated: "1" }));
+}
+
+async function revertStatus(formData) {
+  "use server";
+  const cookieStore = await cookies();
+  const session = await getSession(cookieStore);
+  if (!session.valid) redirect("/admin/login");
+
+  const id = formData.get("id");
+  const parsed = statusSchema.safeParse(formData.get("status"));
+  if (!parsed.success) {
+    redirect(buildEnquiryDetailPath(id, { error: "Please choose a valid booking status." }));
+  }
+
+  try {
+    await undoQuoteRequestStatus(id, parsed.data);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "We couldn't revert the booking status.";
     redirect(buildEnquiryDetailPath(id, { error: message }));
   }
 
@@ -113,13 +138,8 @@ export default async function EnquiryDetailPage({ params, searchParams }) {
   if (!enquiry) notFound();
 
   const ref = buildQuoteRequestReference(enquiry.id);
-  const allowedStatusSet = new Set([
-    enquiry.status,
-    ...getAllowedBookingStatusTransitions(enquiry.status),
-  ]);
-  const statusOptions = BOOKING_STATUS_VALUES.filter((status) =>
-    allowedStatusSet.has(status),
-  );
+  const nextStatus = getAllowedBookingStatusTransitions(enquiry.status)[0] ?? null;
+  const prevStatus = getAllowedBookingStatusUndoTargets(enquiry.status)[0] ?? null;
   const statusMessage =
     query?.updated === "1"
       ? "Booking status updated."
@@ -269,28 +289,16 @@ export default async function EnquiryDetailPage({ params, searchParams }) {
       </section>
 
       <section className="admin-detail-section">
-        <h2 className="admin-detail-section-title">Update Status</h2>
+        <h2 className="admin-detail-section-title">Booking Progress</h2>
         <p className="admin-detail-note">{getBookingStatusDescription(enquiry.status)}</p>
-        <form className="admin-status-form" action={updateStatus}>
-          <input type="hidden" name="id" value={enquiry.id} />
-          <select
-            name="status"
-            defaultValue={enquiry.status}
-            className="admin-form-select"
-          >
-            {statusOptions.map((status) => (
-              <option key={status} value={status}>
-                {formatBookingStatusLabel(status)}
-              </option>
-            ))}
-          </select>
-          <button type="submit" className="admin-submit-btn admin-submit-btn--sm">
-            Save Status
-          </button>
-        </form>
-        <p className="admin-detail-note admin-detail-note--muted">
-          Allowed flow: New → Confirmed → Complete → Commission paid.
-        </p>
+        <BookingStatusStepper
+          enquiryId={enquiry.id}
+          currentStatus={enquiry.status}
+          nextStatus={nextStatus}
+          prevStatus={prevStatus}
+          advanceAction={updateStatus}
+          revertAction={revertStatus}
+        />
       </section>
 
       <section className="admin-detail-section admin-detail-section--danger">

@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -31,7 +29,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/admin/enquiries");
+      window.location.href = "/admin/enquiries";
     } catch {
       setError("An unexpected error occurred. Please try again.");
     } finally {

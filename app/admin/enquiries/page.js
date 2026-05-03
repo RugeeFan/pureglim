@@ -9,8 +9,6 @@ import {
   formatServiceTypeLabel,
   formatQuoteRequestStatusLabel,
   updateQuoteRequestStatus,
-  undoQuoteRequestStatus,
-  InvalidStatusUndoError,
 } from "../../../lib/services/quoteRequests";
 import StatusNav from "./StatusNav";
 import {
@@ -19,6 +17,16 @@ import {
   formatBookingStatusLabel,
   getBookingPricingDetails,
 } from "../../../lib/services/bookingMeta";
+
+const ADVANCE_ACTION_LABELS = {
+  CONFIRMED: "Confirm Booking",
+  COMPLETE: "Mark Complete",
+  COMMISSION_PAID: "Mark Commission Paid",
+};
+
+function getAdvanceActionLabel(nextStatus) {
+  return ADVANCE_ACTION_LABELS[nextStatus] ?? `Mark ${formatBookingStatusLabel(nextStatus)}`;
+}
 import DeleteAllButton from "./DeleteAllButton";
 import { formatCurrencyOrDash as formatCurrency } from "../../../lib/format/currency";
 
@@ -39,11 +47,6 @@ function renderPricingRows(pricingDetails) {
       {row.label} {formatCurrency(row.amount)}
     </span>
   ));
-}
-
-function getPreviousStatus(status) {
-  const idx = BOOKING_STATUS_VALUES.indexOf(status);
-  return idx > 0 ? BOOKING_STATUS_VALUES[idx - 1] : null;
 }
 
 function getNextStatus(status) {
@@ -80,33 +83,6 @@ async function updateStatusInline(formData) {
       error instanceof Error && error.message
         ? error.message
         : "Couldn't advance booking status.";
-    redirect(appendError(returnTo, userMessage));
-  }
-  redirect(returnTo);
-}
-
-async function undoStatusInline(formData) {
-  "use server";
-  const cookieStore = await cookies();
-  const session = await getSession(cookieStore);
-  if (!session.valid) redirect("/admin/login");
-
-  const id = formData.get("id");
-  const parsed = inlineStatusSchema.safeParse(formData.get("status"));
-  const returnTo = formData.get("returnTo") || "/admin/enquiries";
-
-  if (!parsed.success) {
-    redirect(appendError(returnTo, "Invalid booking status."));
-  }
-
-  try {
-    await undoQuoteRequestStatus(id, parsed.data);
-  } catch (error) {
-    console.error("[admin/enquiries] undo failed:", error);
-    const userMessage =
-      error instanceof InvalidStatusUndoError
-        ? error.message
-        : "Couldn't undo booking status.";
     redirect(appendError(returnTo, userMessage));
   }
   redirect(returnTo);
@@ -208,7 +184,6 @@ export default async function EnquiriesPage({ searchParams }) {
               <tbody>
                 {enquiries.map((enq) => {
                   const nextStatus = getNextStatus(enq.status);
-                  const prevStatus = getPreviousStatus(enq.status);
                   const statusSlug = enq.status.toLowerCase().replaceAll("_", "-");
                   const pricingDetails = getBookingPricingDetails(enq);
 
@@ -270,8 +245,8 @@ export default async function EnquiriesPage({ searchParams }) {
                         </div>
                       </td>
 
-                      {/* Status cell — badge + prev/next buttons */}
-                      <td style={{ position: "relative", zIndex: 1 }}>
+                      {/* Status cell — badge + advance button */}
+                      <td>
                         <div className="admin-status-cell">
                           <span className={`admin-badge admin-badge--${statusSlug}`}>
                             {formatQuoteRequestStatusLabel(enq.status)}
@@ -279,12 +254,10 @@ export default async function EnquiriesPage({ searchParams }) {
                           <StatusNav
                             id={enq.id}
                             nextStatus={nextStatus}
-                            prevStatus={prevStatus}
-                            nextLabel={nextStatus ? formatBookingStatusLabel(nextStatus) : null}
-                            prevLabel={prevStatus ? formatBookingStatusLabel(prevStatus) : null}
+                            nextActionLabel={nextStatus ? getAdvanceActionLabel(nextStatus) : null}
+                            requiresConfirmation={nextStatus === "COMMISSION_PAID"}
                             returnTo={returnTo}
                             advanceAction={updateStatusInline}
-                            undoAction={undoStatusInline}
                           />
                         </div>
                       </td>
@@ -300,7 +273,6 @@ export default async function EnquiriesPage({ searchParams }) {
           <div className="admin-enquiry-cards">
             {enquiries.map((enq) => {
               const nextStatus = getNextStatus(enq.status);
-              const prevStatus = getPreviousStatus(enq.status);
               const statusSlug = enq.status.toLowerCase().replaceAll("_", "-");
               const pricingDetails = getBookingPricingDetails(enq);
 
@@ -374,12 +346,10 @@ export default async function EnquiriesPage({ searchParams }) {
                     <StatusNav
                       id={enq.id}
                       nextStatus={nextStatus}
-                      prevStatus={prevStatus}
-                      nextLabel={nextStatus ? formatBookingStatusLabel(nextStatus) : null}
-                      prevLabel={prevStatus ? formatBookingStatusLabel(prevStatus) : null}
+                      nextActionLabel={nextStatus ? getAdvanceActionLabel(nextStatus) : null}
+                      requiresConfirmation={nextStatus === "COMMISSION_PAID"}
                       returnTo={returnTo}
                       advanceAction={updateStatusInline}
-                      undoAction={undoStatusInline}
                     />
                     <Link href={`/admin/enquiries/${enq.id}`} className="admin-enquiry-open">
                       Open enquiry
