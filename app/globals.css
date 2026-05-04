@@ -1144,29 +1144,6 @@ button {
   min-height: 260px;
 }
 
-.services-mini-media,
-.services-mini-overlay {
-  position: absolute;
-  inset: 0;
-}
-
-.services-mini-media {
-  z-index: 0;
-}
-
-.services-mini-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: grayscale(1) brightness(0.6) contrast(0.96);
-  transform: scale(1.08);
-}
-
-.services-mini-overlay {
-  background:
-    linear-gradient(180deg, rgba(16, 23, 23, 0.08) 0%, rgba(16, 23, 23, 0.58) 100%),
-    linear-gradient(90deg, rgba(16, 23, 23, 0.12), rgba(16, 23, 23, 0.34));
-}
 
 .services-mini-copy {
   position: relative;
@@ -1388,6 +1365,47 @@ a.contact-card:hover {
   letter-spacing: 0.02em;
 }
 
+.about-explore {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.about-explore-col {
+  padding: 20px 22px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 15, 13, 0.38);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.about-explore-links {
+  display: flex;
+  flex-direction: column;
+  margin-top: 14px;
+}
+
+.about-explore-links a {
+  color: rgba(245, 251, 248, 0.68);
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  transition: color 0.15s ease;
+  letter-spacing: 0.01em;
+}
+
+.about-explore-links a:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.about-explore-links a:hover {
+  color: rgba(245, 251, 248, 1);
+}
+
 .contact-card.emphasis {
   background: rgba(10, 15, 13, 0.68);
   border-color: rgba(255, 255, 255, 0.18);
@@ -1540,30 +1558,11 @@ a.contact-card:hover {
   border: 1px solid rgba(255, 255, 255, 0.24);
   display: grid;
   align-items: end;
-  background: rgba(6, 11, 10, 0.86);
-  backdrop-filter: blur(22px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  background: rgba(6, 11, 10, 0.52);
+  backdrop-filter: blur(18px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
-.service-feature-media,
-.service-feature-overlay {
-  position: absolute;
-  inset: 0;
-}
-
-.service-feature-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: grayscale(1) brightness(0.56) contrast(0.96);
-  transform: scale(1.08);
-}
-
-.service-feature-overlay {
-  background:
-    linear-gradient(90deg, rgba(10, 18, 16, 0.68), rgba(10, 18, 16, 0.16)),
-    linear-gradient(180deg, rgba(10, 18, 16, 0.08), rgba(10, 18, 16, 0.48));
-}
 
 .service-feature-copy {
   position: relative;
@@ -1892,30 +1891,6 @@ a.contact-card:hover {
   box-shadow: 0 30px 80px rgba(33, 42, 40, 0.08);
 }
 
-.services-media,
-.services-overlay {
-  position: absolute;
-  inset: 0;
-}
-
-.services-media {
-  z-index: 0;
-}
-
-.services-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.12;
-  filter: grayscale(1) blur(18px) saturate(0.7);
-  transform: scale(1.08);
-}
-
-.services-overlay {
-  background:
-    radial-gradient(circle at top right, rgba(255, 255, 255, 0.76), transparent 28%),
-    linear-gradient(180deg, rgba(246, 247, 246, 0.88), rgba(239, 241, 240, 0.96));
-}
 
 .services-topbar,
 .services-grid {
@@ -2035,29 +2010,6 @@ a.contact-card:hover {
   background: rgba(16, 23, 23, 0.74);
 }
 
-.service-card-media,
-.service-card-overlay {
-  position: absolute;
-  inset: 0;
-}
-
-.service-card-media {
-  z-index: 0;
-}
-
-.service-card-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: grayscale(1) brightness(0.58) contrast(0.95);
-  transform: scale(1.1);
-}
-
-.service-card-overlay {
-  background:
-    linear-gradient(180deg, rgba(16, 23, 23, 0.08) 0%, rgba(16, 23, 23, 0.58) 100%),
-    linear-gradient(90deg, rgba(16, 23, 23, 0.14), rgba(16, 23, 23, 0.38));
-}
 
 .service-card-content {
   position: relative;
@@ -2814,6 +2766,10 @@ a.contact-card:hover {
   .about-stat-card.wide,
   .contact-card.wide {
     grid-column: span 1;
+  }
+
+  .about-explore {
+    grid-template-columns: 1fr;
   }
 
   .about-lead-card,

@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 export default function AboutPanel({ isOpen }) {
   return (
     <section aria-hidden={!isOpen} className="info-panel about-panel">
@@ -52,6 +54,25 @@ export default function AboutPanel({ isOpen }) {
             <span>Lower North Shore</span>
             <span>Inner East Sydney</span>
             <span>North Shore Corridor</span>
+          </div>
+        </div>
+
+        <div className="about-explore">
+          <div className="about-explore-col">
+            <span className="about-areas-eyebrow">Services</span>
+            <div className="about-explore-links">
+              <Link href="/services/regular-cleaning">Regular cleaning</Link>
+              <Link href="/services/end-of-lease">End of lease</Link>
+              <Link href="/services/commercial">Commercial</Link>
+              <Link href="/services/cleaning-for-busy-homes">Cleaning for busy homes</Link>
+            </div>
+          </div>
+          <div className="about-explore-col">
+            <span className="about-areas-eyebrow">Areas</span>
+            <div className="about-explore-links">
+              <Link href="/locations/eastern-suburbs">Eastern Suburbs</Link>
+              <Link href="/locations/northern-suburbs">North Shore</Link>
+            </div>
           </div>
         </div>
       </div>
