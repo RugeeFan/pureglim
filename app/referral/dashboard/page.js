@@ -158,6 +158,10 @@ export default async function ReferralDashboardPage() {
               </strong>
             </article>
           ))}
+          <p className="referral-commission-explainer">
+            Commission is paid after the referred customer completes their first
+            clean. Your friend receives $20 off their first booking.
+          </p>
         </div>
       </section>
 
@@ -241,8 +245,7 @@ export default async function ReferralDashboardPage() {
                       <div className="referral-booking-meta-grid">
                         <div className="referral-booking-meta-item">
                           <span>Customer</span>
-                          <strong>{booking.customerName}</strong>
-                          <small>{booking.email}</small>
+                          <strong>{booking.customerDisplayName}</strong>
                         </div>
                         <div className="referral-booking-meta-item">
                           <span>Referral code</span>
@@ -294,8 +297,7 @@ export default async function ReferralDashboardPage() {
                           <td>{formatServiceTypeLabel(booking.serviceType.toLowerCase())}</td>
                           <td>
                             <div className="referral-cell-stack">
-                              <span>{booking.customerName}</span>
-                              <small>{booking.email}</small>
+                              <span>{booking.customerDisplayName}</span>
                             </div>
                           </td>
                           <td>

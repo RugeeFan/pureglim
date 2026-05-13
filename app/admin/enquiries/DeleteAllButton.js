@@ -3,14 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function DeleteAllButton({ count }) {
+export default function DeleteAllButton({ count, filterActive = false }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   async function handleDeleteAll() {
     if (
       !window.confirm(
-        `Delete all ${count} enquier${count === 1 ? "y" : "ies"}? This cannot be undone.`
+        `Delete all ${count} ${count === 1 ? "enquiry" : "enquiries"} from the database? This cannot be undone.`,
       )
     )
       return;
@@ -30,13 +30,25 @@ export default function DeleteAllButton({ count }) {
     }
   }
 
+  const disabled = loading || count === 0 || filterActive;
+  const label = loading
+    ? "Deleting…"
+    : `Delete all enquiries (${count} total)`;
+
   return (
-    <button
-      className="admin-danger-btn"
-      onClick={handleDeleteAll}
-      disabled={loading || count === 0}
-    >
-      {loading ? "Deleting…" : "Delete all"}
-    </button>
+    <div className="admin-danger-wrap">
+      <button
+        className="admin-danger-btn"
+        onClick={handleDeleteAll}
+        disabled={disabled}
+      >
+        {label}
+      </button>
+      {filterActive ? (
+        <small className="admin-danger-helper">
+          Clear search and filters before deleting all enquiries.
+        </small>
+      ) : null}
+    </div>
   );
 }

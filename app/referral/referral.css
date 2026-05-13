@@ -60,6 +60,45 @@
   text-transform: uppercase;
 }
 
+.referral-auth-benefits {
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.referral-auth-benefits li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(15, 107, 90, 0.06);
+  border: 1px solid rgba(15, 107, 90, 0.14);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  color: rgba(19, 34, 31, 0.92);
+}
+
+.referral-auth-benefits li strong {
+  font-weight: 600;
+  color: rgba(19, 34, 31, 1);
+}
+
+.referral-auth-benefit-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: rgba(15, 107, 90, 0.92);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
 .referral-auth-form {
   margin-top: 28px;
   display: grid;
@@ -453,6 +492,18 @@
   grid-column: 1 / -1;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
+}
+
+.referral-commission-explainer {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  padding: 12px 16px;
+  background: rgba(15, 107, 90, 0.06);
+  border: 1px solid rgba(15, 107, 90, 0.14);
+  border-radius: 12px;
+  color: rgba(19, 34, 31, 0.78);
+  font-size: 0.88rem;
+  line-height: 1.5;
 }
 
 .referral-stat-copy {

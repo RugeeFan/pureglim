@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getSession } from "../../../lib/auth/session";
 import {
   getQuoteRequests,
+  getEnquirySummaryCounts,
   buildQuoteRequestReference,
   formatServiceTypeLabel,
   formatQuoteRequestStatusLabel,
@@ -28,6 +29,7 @@ function getAdvanceActionLabel(nextStatus) {
   return ADVANCE_ACTION_LABELS[nextStatus] ?? `Mark ${formatBookingStatusLabel(nextStatus)}`;
 }
 import DeleteAllButton from "./DeleteAllButton";
+import EmptyEnquiriesCard from "./EmptyEnquiriesCard";
 import { formatCurrencyOrDash as formatCurrency } from "../../../lib/format/currency";
 
 export const metadata = { title: "Enquiries — PureGlim Admin" };
@@ -103,14 +105,18 @@ export default async function EnquiriesPage({ searchParams }) {
   const search = (params.q ?? "").trim().slice(0, 80);
   const statusFilter = params.status ?? "";
 
-  const { items: enquiries, total } = await getQuoteRequests({
-    page,
-    pageSize: PAGE_SIZE,
-    search,
-    status: statusFilter,
-  });
+  const [{ items: enquiries, total }, summaryCounts] = await Promise.all([
+    getQuoteRequests({
+      page,
+      pageSize: PAGE_SIZE,
+      search,
+      status: statusFilter,
+    }),
+    getEnquirySummaryCounts(),
+  ]);
   const totalPages = Math.ceil(total / PAGE_SIZE);
   const safePage = Math.min(page, totalPages || 1);
+  const filterActive = Boolean(search || statusFilter);
 
   function pageUrl(p) {
     const qs = new URLSearchParams();
@@ -129,7 +135,7 @@ export default async function EnquiriesPage({ searchParams }) {
           <h1 className="admin-page-title">Enquiries</h1>
           <span className="admin-page-count">{total} total</span>
         </div>
-        <DeleteAllButton count={total} />
+        <DeleteAllButton count={total} filterActive={filterActive} />
       </div>
 
       {params?.error ? (
@@ -137,6 +143,27 @@ export default async function EnquiriesPage({ searchParams }) {
           {params.error}
         </div>
       ) : null}
+
+      <div className="admin-summary-cards">
+        <div className="admin-summary-card">
+          <span className="admin-summary-card-label">Today&apos;s new enquiries</span>
+          <strong className="admin-summary-card-value">{summaryCounts.todayNew}</strong>
+          <small className="admin-summary-card-helper">Created since midnight.</small>
+        </div>
+        <div className="admin-summary-card">
+          <span className="admin-summary-card-label">Need follow-up</span>
+          <strong className="admin-summary-card-value">{summaryCounts.needFollowUp}</strong>
+          <small className="admin-summary-card-helper">Older than 24h and still new.</small>
+        </div>
+        <Link
+          href="/admin/enquiries?status=NEW"
+          className="admin-summary-card admin-summary-card--link"
+        >
+          <span className="admin-summary-card-label">Pending confirmation</span>
+          <strong className="admin-summary-card-value">{summaryCounts.pendingConfirmation}</strong>
+          <small className="admin-summary-card-helper">Click to filter →</small>
+        </Link>
+      </div>
 
       {/* Search + filter bar */}
       <div className="admin-search-shell">
@@ -163,9 +190,11 @@ export default async function EnquiriesPage({ searchParams }) {
       </div>
 
       {total === 0 ? (
-        <p className="admin-empty">
-          {search || statusFilter ? "No results for the current filters." : "No enquiries yet."}
-        </p>
+        filterActive ? (
+          <p className="admin-empty">No results for the current filters.</p>
+        ) : (
+          <EmptyEnquiriesCard />
+        )
       ) : (
         <>
           <div className="admin-table-wrapper">

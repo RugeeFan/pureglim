@@ -1,13 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 export default function LogoutButton() {
-  const router = useRouter();
-
   async function handleLogout() {
     await fetch("/api/admin/auth/logout", { method: "POST" });
-    router.push("/admin/login");
+    // Hard navigation so the server layout re-runs without a cached session and
+    // the admin nav disappears immediately. router.push() leaves stale nav until
+    // the next full reload.
+    window.location.href = "/admin/login";
   }
 
   return (

@@ -54,11 +54,26 @@ export default function ReferrerAuthForm() {
     <div className="referral-auth-card">
       <div className="referral-auth-copy">
         <p className="referral-eyebrow">PureGlim Referral Program</p>
-        <h1>Join or log in.</h1>
+        <h1>Earn when you refer friends to PureGlim.</h1>
         <p>
-          Enter your mobile number and we&apos;ll send a verification code.
-          {" "}New to the program? We&apos;ll set you up automatically.
+          Your friend gets $20 off their first clean. You earn commission
+          after their first completed booking. Share your link, track bookings,
+          and see your payouts in one place.
         </p>
+        <ul className="referral-auth-benefits" aria-label="Program benefits">
+          <li>
+            <span className="referral-auth-benefit-icon" aria-hidden="true">$</span>
+            <span>Friend gets <strong>$20 off</strong></span>
+          </li>
+          <li>
+            <span className="referral-auth-benefit-icon" aria-hidden="true">✓</span>
+            <span>You earn <strong>commission</strong></span>
+          </li>
+          <li>
+            <span className="referral-auth-benefit-icon" aria-hidden="true">↗</span>
+            <span>Simple <strong>SMS login</strong></span>
+          </li>
+        </ul>
       </div>
 
       <form className="referral-auth-form" onSubmit={handleSubmit}>
