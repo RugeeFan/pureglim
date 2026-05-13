@@ -1,5 +1,8 @@
 "use client";
 
+import { useRef, useState } from "react";
+import ConfirmModal from "../components/ConfirmModal";
+
 const STEP_ORDER = ["NEW", "CONFIRMED", "COMPLETE", "COMMISSION_PAID"];
 
 const STEP_LABELS = {
@@ -21,6 +24,17 @@ const REVERT_LABELS = {
   COMPLETE: "Revert to Complete",
 };
 
+function formatAmount(n) {
+  if (n == null) return "—";
+  return `$${Number(n).toLocaleString("en-AU")}`;
+}
+
+function formatToday() {
+  return new Intl.DateTimeFormat("en-AU", {
+    dateStyle: "medium",
+  }).format(new Date());
+}
+
 export default function BookingStatusStepper({
   enquiryId,
   currentStatus,
@@ -28,8 +42,19 @@ export default function BookingStatusStepper({
   prevStatus,
   advanceAction,
   revertAction,
+  // Optional booking context for richer financial modal
+  referenceLabel,
+  customerName,
+  referrerName,
+  commissionAmount,
 }) {
   const currentIndex = STEP_ORDER.indexOf(currentStatus);
+  const advanceFormRef = useRef(null);
+  const revertFormRef = useRef(null);
+  const [advanceOpen, setAdvanceOpen] = useState(false);
+  const [revertOpen, setRevertOpen] = useState(false);
+
+  const isCommissionStep = nextStatus === "COMMISSION_PAID";
 
   return (
     <div className="booking-stepper">
@@ -53,24 +78,13 @@ export default function BookingStatusStepper({
 
       <div className="booking-stepper-actions">
         {nextStatus && (
-          <form action={advanceAction}>
+          <form ref={advanceFormRef} action={advanceAction}>
             <input type="hidden" name="id" value={enquiryId} />
             <input type="hidden" name="status" value={nextStatus} />
             <button
-              type="submit"
+              type={isCommissionStep ? "button" : "submit"}
               className="admin-submit-btn"
-              onClick={
-                nextStatus === "COMMISSION_PAID"
-                  ? (e) => {
-                      if (
-                        !window.confirm(
-                          "Mark this booking as Commission Paid?\n\nThis confirms the referral earnings have been paid out."
-                        )
-                      )
-                        e.preventDefault();
-                    }
-                  : undefined
-              }
+              onClick={isCommissionStep ? () => setAdvanceOpen(true) : undefined}
             >
               {ADVANCE_LABELS[nextStatus]}
             </button>
@@ -78,26 +92,57 @@ export default function BookingStatusStepper({
         )}
 
         {prevStatus && (
-          <form action={revertAction}>
+          <form ref={revertFormRef} action={revertAction}>
             <input type="hidden" name="id" value={enquiryId} />
             <input type="hidden" name="status" value={prevStatus} />
             <button
-              type="submit"
+              type="button"
               className="booking-stepper-revert-btn"
-              onClick={(e) => {
-                if (
-                  !window.confirm(
-                    `${REVERT_LABELS[prevStatus]}?\n\nThis will move the booking back one step.`
-                  )
-                )
-                  e.preventDefault();
-              }}
+              onClick={() => setRevertOpen(true)}
             >
               ← {REVERT_LABELS[prevStatus]}
             </button>
           </form>
         )}
       </div>
+
+      <ConfirmModal
+        open={advanceOpen}
+        variant="financial"
+        title="Mark commission as paid?"
+        message="Confirms the referral commission has been transferred. This stays in the activity log."
+        details={[
+          { label: "Booking", value: referenceLabel ?? enquiryId },
+          { label: "Customer", value: customerName ?? "—" },
+          { label: "Referrer", value: referrerName ?? "—" },
+          { label: "Commission", value: formatAmount(commissionAmount) },
+          { label: "Recorded", value: formatToday() },
+        ]}
+        requirePhrase="PAY"
+        confirmLabel="Mark as paid"
+        onCancel={() => setAdvanceOpen(false)}
+        onConfirm={() => {
+          setAdvanceOpen(false);
+          advanceFormRef.current?.requestSubmit();
+        }}
+      />
+
+      <ConfirmModal
+        open={revertOpen}
+        variant="danger"
+        title={prevStatus ? `${REVERT_LABELS[prevStatus]}?` : "Revert status?"}
+        message={
+          prevStatus
+            ? `This will move the booking back from ${STEP_LABELS[currentStatus]} to ${STEP_LABELS[prevStatus]}. A note is recorded in the activity log.`
+            : "This will move the booking back one step."
+        }
+        confirmLabel="Revert"
+        onCancel={() => setRevertOpen(false)}
+        onConfirm={() => {
+          setRevertOpen(false);
+          revertFormRef.current?.requestSubmit();
+        }}
+      />
     </div>
   );
 }

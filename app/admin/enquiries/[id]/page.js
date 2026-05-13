@@ -298,12 +298,16 @@ export default async function EnquiryDetailPage({ params, searchParams }) {
           prevStatus={prevStatus}
           advanceAction={updateStatus}
           revertAction={revertStatus}
+          referenceLabel={ref}
+          customerName={enquiry.customerName}
+          referrerName={enquiry.referrer?.fullName}
+          commissionAmount={enquiry.commissionAmount}
         />
       </section>
 
       <section className="admin-detail-section admin-detail-section--danger">
         <h2 className="admin-detail-section-title">Danger Zone</h2>
-        <DeleteButton formAction={deleteEnquiry} enquiryId={enquiry.id} />
+        <DeleteButton formAction={deleteEnquiry} enquiryId={enquiry.id} referenceLabel={ref} />
       </section>
     </div>
   );

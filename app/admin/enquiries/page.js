@@ -287,6 +287,10 @@ export default async function EnquiriesPage({ searchParams }) {
                             requiresConfirmation={nextStatus === "COMMISSION_PAID"}
                             returnTo={returnTo}
                             advanceAction={updateStatusInline}
+                            customerName={enq.customerName}
+                            commissionAmount={enq.commissionAmount}
+                            referrerName={enq.referrer?.fullName}
+                            referenceLabel={buildQuoteRequestReference(enq.id)}
                           />
                         </div>
                       </td>
@@ -379,6 +383,10 @@ export default async function EnquiriesPage({ searchParams }) {
                       requiresConfirmation={nextStatus === "COMMISSION_PAID"}
                       returnTo={returnTo}
                       advanceAction={updateStatusInline}
+                      customerName={enq.customerName}
+                      commissionAmount={enq.commissionAmount}
+                      referrerName={enq.referrer?.fullName}
+                      referenceLabel={buildQuoteRequestReference(enq.id)}
                     />
                     <Link href={`/admin/enquiries/${enq.id}`} className="admin-enquiry-open">
                       Open enquiry

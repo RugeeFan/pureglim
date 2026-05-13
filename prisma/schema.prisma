@@ -61,36 +61,55 @@ model LoginAttempt {
 }
 
 model QuoteRequest {
-  id                   String         @id @default(cuid())
-  serviceType          ServiceType
-  customerName         String
-  phone                String
-  email                String
-  address              String
-  bedrooms             String?
-  bathrooms            String?
-  frequency            String?
-  companyName          String?
-  siteType             String?
-  siteSchedule         String?
-  addOns               Json?
-  estimatedPrice       Int?
-  originalAmount       Int?
-  discountAmount       Int            @default(0)
-  finalAmount          Int?
-  commissionBaseAmount Int?
-  commissionAmount     Int?
-  referralCode         String?
-  referrerId           String?
-  notes                String?
-  preferredDate        String?
-  preferredTime        String?
-  status               BookingStatus  @default(NEW)
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
-  referrer             Referrer?      @relation(fields: [referrerId], references: [id], onDelete: SetNull)
+  id                     String               @id @default(cuid())
+  serviceType            ServiceType
+  customerName           String
+  phone                  String
+  email                  String
+  address                String
+  bedrooms               String?
+  bathrooms              String?
+  frequency              String?
+  companyName            String?
+  siteType               String?
+  siteSchedule           String?
+  addOns                 Json?
+  estimatedPrice         Int?
+  originalAmount         Int?
+  discountAmount         Int                  @default(0)
+  finalAmount            Int?
+  commissionBaseAmount   Int?
+  commissionAmount       Int?
+  referralCode           String?
+  referrerId             String?
+  notes                  String?
+  internalNotes          String?
+  internalNotesUpdatedAt DateTime?
+  preferredDate          String?
+  preferredTime          String?
+  status                 BookingStatus        @default(NEW)
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  referrer               Referrer?            @relation(fields: [referrerId], references: [id], onDelete: SetNull)
+  activityLogs           EnquiryActivityLog[]
 
   @@index([referrerId, createdAt])
   @@index([referralCode])
   @@index([status, createdAt])
+}
+
+model EnquiryActivityLog {
+  id             String       @id @default(cuid())
+  quoteRequestId String
+  actorType      String
+  actorName      String?
+  action         String
+  fromStatus     String?
+  toStatus       String?
+  message        String?
+  createdAt      DateTime     @default(now())
+
+  quoteRequest   QuoteRequest @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
+
+  @@index([quoteRequestId, createdAt])
 }
