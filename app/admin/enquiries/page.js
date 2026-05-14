@@ -103,7 +103,11 @@ export default async function EnquiriesPage({ searchParams }) {
   // attacker can trigger from any logged-in admin session. 80 chars is
   // generous for real-world searches and bounds the worst case.
   const search = (params.q ?? "").trim().slice(0, 80);
-  const statusFilter = params.status ?? "";
+  const rawView = (params.view ?? "").toLowerCase();
+  const view = rawView === "today" || rawView === "followup" ? rawView : "";
+  // followup implies status=NEW server-side; ignore any explicit status when
+  // followup is active so the URL stays consistent.
+  const statusFilter = view === "followup" ? "" : (params.status ?? "");
 
   const [{ items: enquiries, total }, summaryCounts] = await Promise.all([
     getQuoteRequests({
@@ -111,20 +115,27 @@ export default async function EnquiriesPage({ searchParams }) {
       pageSize: PAGE_SIZE,
       search,
       status: statusFilter,
+      view,
     }),
     getEnquirySummaryCounts(),
   ]);
   const totalPages = Math.ceil(total / PAGE_SIZE);
   const safePage = Math.min(page, totalPages || 1);
-  const filterActive = Boolean(search || statusFilter);
+  const filterActive = Boolean(search || statusFilter || view);
 
   function pageUrl(p) {
     const qs = new URLSearchParams();
     if (p > 1) qs.set("page", String(p));
     if (search) qs.set("q", search);
     if (statusFilter) qs.set("status", statusFilter);
+    if (view) qs.set("view", view);
     return `/admin/enquiries${qs.size ? `?${qs}` : ""}`;
   }
+
+  const viewLabel = {
+    today: "Showing today's new enquiries",
+    followup: "Showing enquiries that need follow-up (>24h, still New)",
+  }[view];
 
   const returnTo = pageUrl(safePage);
 
@@ -145,25 +156,38 @@ export default async function EnquiriesPage({ searchParams }) {
       ) : null}
 
       <div className="admin-summary-cards">
-        <div className="admin-summary-card">
+        <Link
+          href="/admin/enquiries?view=today"
+          className={`admin-summary-card admin-summary-card--link${view === "today" ? " admin-summary-card--active" : ""}`}
+        >
           <span className="admin-summary-card-label">Today&apos;s new enquiries</span>
           <strong className="admin-summary-card-value">{summaryCounts.todayNew}</strong>
           <small className="admin-summary-card-helper">Created since midnight.</small>
-        </div>
-        <div className="admin-summary-card">
+        </Link>
+        <Link
+          href="/admin/enquiries?view=followup"
+          className={`admin-summary-card admin-summary-card--link${view === "followup" ? " admin-summary-card--active" : ""}`}
+        >
           <span className="admin-summary-card-label">Need follow-up</span>
           <strong className="admin-summary-card-value">{summaryCounts.needFollowUp}</strong>
           <small className="admin-summary-card-helper">Older than 24h and still new.</small>
-        </div>
+        </Link>
         <Link
           href="/admin/enquiries?status=NEW"
-          className="admin-summary-card admin-summary-card--link"
+          className={`admin-summary-card admin-summary-card--link${statusFilter === "NEW" && !view ? " admin-summary-card--active" : ""}`}
         >
           <span className="admin-summary-card-label">Pending confirmation</span>
           <strong className="admin-summary-card-value">{summaryCounts.pendingConfirmation}</strong>
           <small className="admin-summary-card-helper">Click to filter →</small>
         </Link>
       </div>
+
+      {viewLabel ? (
+        <div className="admin-view-pill" role="status">
+          <span>{viewLabel}</span>
+          <Link href="/admin/enquiries" className="admin-view-pill-clear">Clear</Link>
+        </div>
+      ) : null}
 
       {/* Search + filter bar */}
       <div className="admin-search-shell">
@@ -176,14 +200,21 @@ export default async function EnquiriesPage({ searchParams }) {
             className="admin-search-input"
             autoComplete="off"
           />
-          <select name="status" defaultValue={statusFilter} className="admin-status-filter-select">
+          <select
+            name="status"
+            defaultValue={statusFilter}
+            className="admin-status-filter-select"
+            disabled={view === "followup"}
+            title={view === "followup" ? "Follow-up view is pinned to New status" : undefined}
+          >
             <option value="">All statuses</option>
             {BOOKING_STATUS_VALUES.map((s) => (
               <option key={s} value={s}>{formatBookingStatusLabel(s)}</option>
             ))}
           </select>
+          {view ? <input type="hidden" name="view" value={view} /> : null}
           <button type="submit" className="admin-search-btn">Search</button>
-          {(search || statusFilter) && (
+          {(search || statusFilter || view) && (
             <a href="/admin/enquiries" className="admin-search-clear">Clear</a>
           )}
         </form>

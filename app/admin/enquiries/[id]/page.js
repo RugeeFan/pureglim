@@ -11,6 +11,7 @@ import {
   formatServiceTypeLabel,
   formatQuoteRequestStatusLabel,
   getQuoteRequestCommissionStateLabel,
+  getEnquiryActivityLogs,
 } from "../../../../lib/services/quoteRequests";
 import {
   BOOKING_STATUS_VALUES,
@@ -20,6 +21,8 @@ import {
   getBookingPricingDetails,
 } from "../../../../lib/services/bookingMeta";
 import DeleteButton from "./DeleteButton";
+import InternalNotesForm from "./InternalNotesForm";
+import ActivityTimeline from "./ActivityTimeline";
 import BookingStatusStepper from "../BookingStatusStepper";
 import { formatCurrencyOrDash as formatCurrency } from "../../../../lib/format/currency";
 
@@ -136,6 +139,8 @@ export default async function EnquiryDetailPage({ params, searchParams }) {
   const query = await searchParams;
   const enquiry = await getQuoteRequestById(id);
   if (!enquiry) notFound();
+
+  const activityLogs = await getEnquiryActivityLogs(enquiry.id);
 
   const ref = buildQuoteRequestReference(enquiry.id);
   const nextStatus = getAllowedBookingStatusTransitions(enquiry.status)[0] ?? null;
@@ -303,6 +308,23 @@ export default async function EnquiryDetailPage({ params, searchParams }) {
           referrerName={enquiry.referrer?.fullName}
           commissionAmount={enquiry.commissionAmount}
         />
+      </section>
+
+      <section className="admin-detail-section">
+        <h2 className="admin-detail-section-title">Internal notes</h2>
+        <p className="admin-detail-note">
+          Only visible to admin. Customers and referrers never see this.
+        </p>
+        <InternalNotesForm
+          enquiryId={enquiry.id}
+          initialNotes={enquiry.internalNotes ?? ""}
+          initialUpdatedAt={enquiry.internalNotesUpdatedAt}
+        />
+      </section>
+
+      <section className="admin-detail-section">
+        <h2 className="admin-detail-section-title">Activity</h2>
+        <ActivityTimeline logs={activityLogs} />
       </section>
 
       <section className="admin-detail-section admin-detail-section--danger">
