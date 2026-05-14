@@ -2,23 +2,19 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import ConfirmModal from "../components/ConfirmModal";
 
 export default function DeleteAllButton({ count, filterActive = false }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  async function handleDeleteAll() {
-    if (
-      !window.confirm(
-        `Delete all ${count} ${count === 1 ? "enquiry" : "enquiries"} from the database? This cannot be undone.`,
-      )
-    )
-      return;
-
+  async function doDelete() {
     setLoading(true);
     try {
       const res = await fetch("/api/admin/enquiries", { method: "DELETE" });
       if (res.ok) {
+        setOpen(false);
         router.refresh();
       } else {
         alert("Failed to delete enquiries. Please try again.");
@@ -38,8 +34,9 @@ export default function DeleteAllButton({ count, filterActive = false }) {
   return (
     <div className="admin-danger-wrap">
       <button
+        type="button"
         className="admin-danger-btn"
-        onClick={handleDeleteAll}
+        onClick={() => setOpen(true)}
         disabled={disabled}
       >
         {label}
@@ -49,6 +46,18 @@ export default function DeleteAllButton({ count, filterActive = false }) {
           Clear search and filters before deleting all enquiries.
         </small>
       ) : null}
+
+      <ConfirmModal
+        open={open}
+        variant="danger"
+        title={`Delete all ${count} ${count === 1 ? "enquiry" : "enquiries"}?`}
+        message="Every enquiry in the database will be permanently removed. This cannot be undone."
+        requirePhrase="DELETE"
+        confirmLabel={count === 1 ? "Delete enquiry" : "Delete all enquiries"}
+        loading={loading}
+        onCancel={() => (loading ? null : setOpen(false))}
+        onConfirm={doDelete}
+      />
     </div>
   );
 }
