@@ -11,6 +11,7 @@ enum ServiceType {
   REGULAR
   END_OF_LEASE
   COMMERCIAL
+  HOURLY
 }
 
 enum BookingStatus {
@@ -70,6 +71,7 @@ model QuoteRequest {
   bedrooms               String?
   bathrooms              String?
   frequency              String?
+  hourlyHours            Int?
   companyName            String?
   siteType               String?
   siteSchedule           String?
@@ -99,7 +101,7 @@ model QuoteRequest {
 }
 
 model EnquiryActivityLog {
-  id             String       @id @default(cuid())
+  id             String   @id @default(cuid())
   quoteRequestId String
   actorType      String
   actorName      String?
@@ -107,9 +109,9 @@ model EnquiryActivityLog {
   fromStatus     String?
   toStatus       String?
   message        String?
-  createdAt      DateTime     @default(now())
+  createdAt      DateTime @default(now())
 
-  quoteRequest   QuoteRequest @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
+  quoteRequest QuoteRequest @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
 
   @@index([quoteRequestId, createdAt])
 }

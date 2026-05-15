@@ -35,8 +35,14 @@ import {
   deepCleaningAddOns,
   frequencyOptions,
   getCarpetSteamPrice,
+  getHourlyPrice,
   getRegularPrice,
   getValidBathroomOptions,
+  HOURLY_FOCUS_AREAS,
+  HOURLY_MAX_HOURS,
+  HOURLY_MIN_HOURS,
+  HOURLY_RATE,
+  hourlyHourOptions,
   REGULAR_PRICE_BUFFER,
   FIRST_CLEAN_PRICE_BUFFER,
   CLEANING_TIME_ESTIMATES,
@@ -54,6 +60,10 @@ function getSteps(serviceId) {
     return ["select", "details", "contact", "review", "result"];
   }
 
+  if (serviceId === "regular") {
+    return ["select", "quote", "contact", "review", "result"];
+  }
+
   return ["select", "details", "quote", "contact", "review", "result"];
 }
 
@@ -62,6 +72,8 @@ function getInitialFormState() {
     bedrooms: "1 Bedroom",
     bathrooms: "1 Bathroom",
     frequency: "Weekly",
+    hourlyMode: false,
+    hourlyHours: HOURLY_MIN_HOURS,
     addOns: [],
     companyName: "",
     siteType: "",
@@ -117,6 +129,8 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
   const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showAddOnsModal, setShowAddOnsModal] = useState(false);
+  const [showRegularCoverageModal, setShowRegularCoverageModal] = useState(false);
+  const [showHourlyCoverageModal, setShowHourlyCoverageModal] = useState(false);
 
   const selectedService = selectedServiceId ? getServiceById(selectedServiceId) : null;
   const steps = getSteps(selectedServiceId);
@@ -140,9 +154,17 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
     setDiscountState(getDefaultDiscountState());
   }, [initialServiceId, isOpen]);
 
+  const isHourlyMode = selectedServiceId === "regular" && form.hourlyMode;
+
   const quote = useMemo(() => {
     if (!selectedServiceId || selectedServiceId === "commercial") {
       return null;
+    }
+
+    if (selectedServiceId === "regular" && form.hourlyMode) {
+      const hours = Number(form.hourlyHours) || HOURLY_MIN_HOURS;
+      const base = getHourlyPrice(hours);
+      return { amount: base, addOnsTotal: 0, base, isHourly: true, hours };
     }
 
     if (!form.bedrooms || !form.bathrooms) {
@@ -202,7 +224,15 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
   }, [discountState, quote]);
 
   const quoteRange = useMemo(() => {
-    if (!selectedServiceId || selectedServiceId === "commercial" || !form.bedrooms || !form.bathrooms) return null;
+    if (!selectedServiceId || selectedServiceId === "commercial") return null;
+
+    if (selectedServiceId === "regular" && form.hourlyMode) {
+      const hours = Number(form.hourlyHours) || HOURLY_MIN_HOURS;
+      const price = getHourlyPrice(hours);
+      return { low: price, high: price, isHourly: true, hours };
+    }
+
+    if (!form.bedrooms || !form.bathrooms) return null;
 
     if (selectedServiceId === "regular") {
       if (form.frequency === "One-time") {
@@ -232,7 +262,7 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
     ? getValidBathroomOptions(form.bedrooms)
     : bathroomOptions;
   const supportsReferralDiscount = isReferralDiscountEligibleService(
-    getServiceSubmissionType(selectedServiceId),
+    isHourlyMode ? "hourly" : getServiceSubmissionType(selectedServiceId),
   );
 
   function updateField(name, value) {
@@ -279,7 +309,12 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
     setSubmitError("");
     autoReferralCodeRef.current = "";
     setDiscountState(getDefaultDiscountState());
-    setForm((current) => ({ ...current, discountCode: "" }));
+    setForm((current) => ({
+      ...current,
+      discountCode: "",
+      hourlyMode: false,
+      hourlyHours: HOURLY_MIN_HOURS,
+    }));
     setStepIndex(jumpToDetails ? 1 : 0);
     setDisplayStepIndex(jumpToDetails ? 1 : 0);
   }
@@ -318,9 +353,11 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
 
     try {
       const validationAmount =
-        selectedServiceId === "regular" && form.frequency !== "One-time"
-          ? (quote.firstCleanPrice ?? quote.amount)
-          : quote.amount;
+        selectedServiceId === "regular" && form.hourlyMode
+          ? quote.amount
+          : selectedServiceId === "regular" && form.frequency !== "One-time"
+            ? (quote.firstCleanPrice ?? quote.amount)
+            : quote.amount;
 
       const response = await fetch("/api/referral/code/validate", {
         method: "POST",
@@ -431,6 +468,15 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
         return true;
       }
 
+      if (isHourlyMode) {
+        const hours = Number(form.hourlyHours);
+        return (
+          Number.isInteger(hours) &&
+          hours >= HOURLY_MIN_HOURS &&
+          hours <= HOURLY_MAX_HOURS
+        );
+      }
+
       return Boolean(form.bedrooms && form.bathrooms);
     }
 
@@ -498,15 +544,24 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
       }
     }
 
+    const isHourlySubmission = selectedService.id === "regular" && form.hourlyMode;
+    const submissionType = isHourlySubmission
+      ? "hourly"
+      : getServiceSubmissionType(selectedService.id);
+
     const payload = {
-      serviceType: getServiceSubmissionType(selectedService.id),
+      serviceType: submissionType,
       customerName: form.name.trim(),
       phone: form.phone.trim(),
       email: form.email.trim(),
       address: form.address.trim(),
-      bedrooms: selectedService.id === "commercial" ? null : form.bedrooms,
-      bathrooms: selectedService.id === "commercial" ? null : form.bathrooms,
-      frequency: selectedService.id === "regular" ? form.frequency : null,
+      bedrooms:
+        selectedService.id === "commercial" || isHourlySubmission ? null : form.bedrooms,
+      bathrooms:
+        selectedService.id === "commercial" || isHourlySubmission ? null : form.bathrooms,
+      frequency:
+        selectedService.id === "regular" && !isHourlySubmission ? form.frequency : null,
+      hourlyHours: isHourlySubmission ? Number(form.hourlyHours) : null,
       addOns: selectedService.id === "deep" ? form.addOns : [],
       companyName: selectedService.id === "commercial" ? form.companyName.trim() : "",
       siteType: selectedService.id === "commercial" ? form.siteType.trim() : "",
@@ -802,221 +857,347 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                     <p>{selectedService.quote.prompt}</p>
                   </div>
 
-                  {selectedService.id === "regular" ? (
-                    <div className="quote-grid quote-grid-regular">
-                      <div className="quote-group quote-group-wide">
-                        <span>Bedrooms</span>
-                        <ScrollPicker
-                          name="bedrooms"
-                          onChange={handleBedroomChange}
-                          options={bedroomOptions}
-                          placeholder="Please scroll to choose"
-                          value={form.bedrooms}
-                        />
-                        <div className="choice-grid choice-grid-5col">
-                          {bedroomOptions.map((option) => (
-                            <button
-                              className={`choice-card ${form.bedrooms === option ? "selected" : ""}`}
-                              key={option}
-                              onClick={() => handleBedroomChange("bedrooms", option)}
-                              type="button"
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="quote-group quote-group-wide">
-                        <span>Bathrooms</span>
-                        <ScrollPicker
-                          name="bathrooms"
-                          onChange={updateField}
-                          options={validBathroomOptions}
-                          placeholder="Please scroll to choose"
-                          value={form.bathrooms}
-                        />
-                        <div className="choice-grid choice-grid-4col">
-                          {bathroomOptions.map((option) => {
-                            const isValid = validBathroomOptions.includes(option);
-                            return (
-                              <button
-                                className={`choice-card ${form.bathrooms === option ? "selected" : ""} ${!isValid ? "disabled" : ""}`}
-                                disabled={!isValid}
-                                key={option}
-                                onClick={() => isValid && updateField("bathrooms", option)}
-                                type="button"
-                              >
-                                {option}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div className="quote-group quote-group-wide">
-                        <span>Frequency</span>
-                        <div className="choice-grid frequency-grid">
-                          {frequencyOptions.map((option) => (
-                            <button
-                              className={`choice-card ${form.frequency === option ? "selected" : ""}`}
-                              key={option}
-                              onClick={() => updateField("frequency", option)}
-                              type="button"
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                    </div>
-                  ) : (
-                    <div className="quote-grid quote-grid-deep">
-                      <div className="quote-group">
-                        <span>Bedrooms</span>
-                        <ScrollPicker
-                          name="bedrooms"
-                          onChange={updateField}
-                          options={bedroomOptions}
-                          placeholder="Please scroll to choose"
-                          value={form.bedrooms}
-                        />
-                        <div className="choice-grid">
-                          {bedroomOptions.map((option) => (
-                            <button
-                              className={`choice-card ${form.bedrooms === option ? "selected" : ""}`}
-                              key={option}
-                              onClick={() => updateField("bedrooms", option)}
-                              type="button"
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="quote-group">
-                        <span>Bathrooms</span>
-                        <ScrollPicker
-                          name="bathrooms"
-                          onChange={updateField}
-                          options={bathroomOptions}
-                          placeholder="Please scroll to choose"
-                          value={form.bathrooms}
-                        />
-                        <div className="choice-grid">
-                          {bathroomOptions.map((option) => (
-                            <button
-                              className={`choice-card ${form.bathrooms === option ? "selected" : ""}`}
-                              key={option}
-                              onClick={() => updateField("bathrooms", option)}
-                              type="button"
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                    </div>
-                  )}
-
-                  {quoteRange && (
-                    <div className="quote-live-estimate">
-                      <div className="quote-estimate-layout">
-                        <div className="quote-estimate-left">
-                          <span className="quote-estimate-label">Estimate</span>
-                          {selectedServiceId === "deep" ? (
-                            <div className="quote-estimate-range">
-                              <span className="quote-estimate-from">From</span>
-                              <AnimatedPrice amount={quoteRange.low} />
-                            </div>
-                          ) : (
-                            <div className="quote-estimate-range">
-                              <AnimatedPrice amount={quoteRange.low} />
-                              <span className="quote-estimate-sep">–</span>
-                              <AnimatedPrice amount={quoteRange.high} />
-                            </div>
-                          )}
-                          {pricingSummary?.discountAmount ? (
-                            <p className="quote-live-detail">Referral -{`$${pricingSummary.discountAmount}`} · first clean only</p>
-                          ) : null}
-                          {selectedServiceId === "deep" && (
-                            <p className="quote-live-detail">
-                              Extra services available.{" "}
-                              <button type="button" className="quote-details-link" onClick={() => setShowAddOnsModal(true)}>
-                                View add-ons & pricing
-                              </button>
-                            </p>
-                          )}
-                          {selectedServiceId === "regular" && form.bathrooms && CLEANING_TIME_ESTIMATES[form.bathrooms] && (
-                            <p className="quote-live-detail">{CLEANING_TIME_ESTIMATES[form.bathrooms]} with 2 cleaners</p>
-                          )}
-                        </div>
-                        <div className="quote-estimate-right">
-                          {selectedServiceId === "regular" && !quoteRange.isOneTime ? (
-                            pricingSummary?.discountAmount ? (
-                              <div className="first-visit-deal">
-                                <p className="first-visit-label">First visit price</p>
-                                <span className="first-visit-strike">
-                                  <AnimatedPrice amount={quoteRange.firstClean.low} />–<AnimatedPrice amount={quoteRange.firstClean.high} />
-                                </span>
-                                <div className="first-visit-deal-row">
-                                  <span className="first-visit-discounted">
-                                    <AnimatedPrice amount={Math.max(0, quoteRange.firstClean.low - pricingSummary.discountAmount)} />–<AnimatedPrice amount={Math.max(0, quoteRange.firstClean.high - pricingSummary.discountAmount)} />
-                                  </span>
-                                  <span className="first-visit-savings-badge">Save ${pricingSummary.discountAmount}</span>
-                                </div>
-                                <p className="first-visit-ongoing">
-                                  Then <AnimatedPrice amount={quoteRange.low} />–<AnimatedPrice amount={quoteRange.high} /> each ongoing visit.{" "}
-                                  <button type="button" className="quote-details-link" onClick={() => setShowDetailsModal(true)}>View details</button>
-                                </p>
-                              </div>
-                            ) : (
-                              <p className="quote-estimate-note">
-                                Your first visit will be{" "}
-                                <AnimatedPrice amount={quoteRange.firstClean.low} />–<AnimatedPrice amount={quoteRange.firstClean.high} />{" "}
-                                — a little more to work through than usual, since we&apos;re starting fresh. Once we&apos;re into the rhythm, each visit is{" "}
-                                <AnimatedPrice amount={quoteRange.low} />–<AnimatedPrice amount={quoteRange.high} />.{" "}
-                                Estimate based on your selections.{" "}
-                                <button type="button" className="quote-details-link" onClick={() => setShowDetailsModal(true)}>
-                                  View details
+                  <div className="quote-shell-twocol">
+                    <div className="quote-options-col">
+                      {isHourlyMode ? (
+                        <div className="quote-grid quote-grid-regular">
+                          <div className="quote-group quote-group-wide">
+                            <span>How many hours?</span>
+                            <div className="choice-grid hourly-hours-grid">
+                              {hourlyHourOptions.map((option) => (
+                                <button
+                                  className={`choice-card ${form.hourlyHours === option ? "selected" : ""}`}
+                                  key={option}
+                                  onClick={() => updateField("hourlyHours", option)}
+                                  type="button"
+                                >
+                                  {option} hrs
                                 </button>
-                              </p>
-                            )
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ) : selectedService.id === "regular" ? (
+                        <div className="quote-grid quote-grid-regular">
+                          <div className="quote-group quote-group-wide">
+                            <span>Bedrooms</span>
+                            <ScrollPicker
+                              name="bedrooms"
+                              onChange={handleBedroomChange}
+                              options={bedroomOptions}
+                              placeholder="Please scroll to choose"
+                              value={form.bedrooms}
+                            />
+                            <div className="choice-grid choice-grid-5col">
+                              {bedroomOptions.map((option) => (
+                                <button
+                                  className={`choice-card ${form.bedrooms === option ? "selected" : ""}`}
+                                  key={option}
+                                  onClick={() => handleBedroomChange("bedrooms", option)}
+                                  type="button"
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="quote-group quote-group-wide">
+                            <span>Bathrooms</span>
+                            <ScrollPicker
+                              name="bathrooms"
+                              onChange={updateField}
+                              options={validBathroomOptions}
+                              placeholder="Please scroll to choose"
+                              value={form.bathrooms}
+                            />
+                            <div className="choice-grid choice-grid-4col">
+                              {bathroomOptions.map((option) => {
+                                const isValid = validBathroomOptions.includes(option);
+                                return (
+                                  <button
+                                    className={`choice-card ${form.bathrooms === option ? "selected" : ""} ${!isValid ? "disabled" : ""}`}
+                                    disabled={!isValid}
+                                    key={option}
+                                    onClick={() => isValid && updateField("bathrooms", option)}
+                                    type="button"
+                                  >
+                                    {option}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <div className="quote-group quote-group-wide">
+                            <span>Frequency</span>
+                            <div className="choice-grid frequency-grid">
+                              {frequencyOptions.map((option) => (
+                                <button
+                                  className={`choice-card ${form.frequency === option ? "selected" : ""}`}
+                                  key={option}
+                                  onClick={() => updateField("frequency", option)}
+                                  type="button"
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="quote-grid quote-grid-deep">
+                          <div className="quote-group">
+                            <span>Bedrooms</span>
+                            <ScrollPicker
+                              name="bedrooms"
+                              onChange={updateField}
+                              options={bedroomOptions}
+                              placeholder="Please scroll to choose"
+                              value={form.bedrooms}
+                            />
+                            <div className="choice-grid">
+                              {bedroomOptions.map((option) => (
+                                <button
+                                  className={`choice-card ${form.bedrooms === option ? "selected" : ""}`}
+                                  key={option}
+                                  onClick={() => updateField("bedrooms", option)}
+                                  type="button"
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="quote-group">
+                            <span>Bathrooms</span>
+                            <ScrollPicker
+                              name="bathrooms"
+                              onChange={updateField}
+                              options={bathroomOptions}
+                              placeholder="Please scroll to choose"
+                              value={form.bathrooms}
+                            />
+                            <div className="choice-grid">
+                              {bathroomOptions.map((option) => (
+                                <button
+                                  className={`choice-card ${form.bathrooms === option ? "selected" : ""}`}
+                                  key={option}
+                                  onClick={() => updateField("bathrooms", option)}
+                                  type="button"
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedService.id === "regular" && !isHourlyMode && (
+                        <div className="quote-included-pitch">
+                          <span className="quote-included-pitch-headline">
+                            A spotless home, <strong>top to bottom</strong> — every visit.
+                          </span>
+                          <button
+                            type="button"
+                            className="quote-included-pitch-cta"
+                            onClick={() => setShowRegularCoverageModal(true)}
+                          >
+                            What&apos;s included?
+                            <ArrowRight size={14} />
+                          </button>
+                        </div>
+                      )}
+
+                      {selectedService.id === "regular" && isHourlyMode && (
+                        <div className="quote-included-pitch">
+                          <span className="quote-included-pitch-headline">
+                            <strong>${HOURLY_RATE} per cleaner-hour</strong> · {HOURLY_MIN_HOURS} hrs min. {HOURLY_MIN_HOURS} hrs may be 1 cleaner × {HOURLY_MIN_HOURS}h, or 2 cleaners × 1.5h.
+                          </span>
+                          <button
+                            type="button"
+                            className="quote-included-pitch-cta"
+                            onClick={() => setShowHourlyCoverageModal(true)}
+                          >
+                            See examples
+                            <ArrowRight size={14} />
+                          </button>
+                        </div>
+                      )}
+
+                      {supportsReferralDiscount && (
+                        <div className="quote-referral-section">
+                          <div className="referral-input-row">
+                            <input
+                              name="discountCode"
+                              onChange={(event) => updateDiscountCode(event.target.value)}
+                              placeholder="Referral code (optional)"
+                              type="text"
+                              value={form.discountCode}
+                            />
+                            {discountState.status === "valid" && discountState.message ? (
+                              <span className="discount-applied-inline">{discountState.message}</span>
+                            ) : null}
+                            {discountState.status === "invalid" && discountState.message ? (
+                              <span className="discount-code-feedback is-error">{discountState.message}</span>
+                            ) : null}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <aside className="price-card">
+                      {selectedService.id === "regular" && (
+                        <div className="pricing-mode-toggle" role="tablist" aria-label="Choose how to price your clean">
+                          <button
+                            type="button"
+                            role="tab"
+                            aria-selected={!isHourlyMode}
+                            className={`pricing-mode-option ${!isHourlyMode ? "is-active" : ""}`}
+                            onClick={() => updateField("hourlyMode", false)}
+                          >
+                            <span className="pricing-mode-label">By home size</span>
+                            <span className="pricing-mode-sub">Whole-home</span>
+                          </button>
+                          <button
+                            type="button"
+                            role="tab"
+                            aria-selected={isHourlyMode}
+                            className={`pricing-mode-option ${isHourlyMode ? "is-active" : ""}`}
+                            onClick={() => updateField("hourlyMode", true)}
+                          >
+                            <span className="pricing-mode-label">By the hour</span>
+                            <span className="pricing-mode-sub">${HOURLY_RATE}/hr</span>
+                          </button>
+                        </div>
+                      )}
+
+                      {quoteRange && (
+                        <div className="price-card-body">
+                          {isHourlyMode ? (
+                            <>
+                              <div className="price-card-primary">
+                                <span className="price-card-label">Per booking</span>
+                                <span className="price-card-big">
+                                  <AnimatedPrice amount={quoteRange.low} />
+                                </span>
+                                <span className="price-card-sub">
+                                  {quoteRange.hours} cleaner-hours × ${HOURLY_RATE}
+                                </span>
+                              </div>
+                              {pricingSummary?.discountAmount ? (
+                                <>
+                                  <div className="price-card-divider" />
+                                  <div className="price-card-secondary">
+                                    <div className="price-card-label-row">
+                                      <span className="price-card-label">First booking</span>
+                                      {pricingSummary.code ? <span className="price-card-code-chip">{pricingSummary.code}</span> : null}
+                                    </div>
+                                    <span className="price-card-strike-small">
+                                      <AnimatedPrice amount={quoteRange.low} />
+                                    </span>
+                                    <div className="price-card-secondary-row">
+                                      <span className="price-card-secondary-price">
+                                        <AnimatedPrice amount={Math.max(0, quoteRange.low - pricingSummary.discountAmount)} />
+                                      </span>
+                                      <span className="price-card-save-badge">Save ${pricingSummary.discountAmount}</span>
+                                    </div>
+                                  </div>
+                                </>
+                              ) : null}
+                            </>
+                          ) : selectedServiceId === "regular" && !quoteRange.isOneTime ? (
+                            <>
+                              <div className="price-card-primary">
+                                <span className="price-card-label">Every visit</span>
+                                <span className="price-card-big">
+                                  <AnimatedPrice amount={quoteRange.low} />–<AnimatedPrice amount={quoteRange.high} />
+                                </span>
+                                <span className="price-card-sub">ongoing rate</span>
+                              </div>
+                              <div className="price-card-divider" />
+                              <div className="price-card-secondary">
+                                <div className="price-card-label-row">
+                                  <span className="price-card-label">
+                                    {pricingSummary?.discountAmount ? "First visit price" : "First visit"}
+                                    {" · "}
+                                    <button type="button" className="price-card-inline-link" onClick={() => setShowDetailsModal(true)}>View details</button>
+                                  </span>
+                                  {pricingSummary?.code ? <span className="price-card-code-chip">{pricingSummary.code}</span> : null}
+                                </div>
+                                {pricingSummary?.discountAmount ? (
+                                  <>
+                                    <span className="price-card-strike-small">
+                                      <AnimatedPrice amount={quoteRange.firstClean.low} />–<AnimatedPrice amount={quoteRange.firstClean.high} />
+                                    </span>
+                                    <div className="price-card-secondary-row">
+                                      <span className="price-card-secondary-price">
+                                        <AnimatedPrice amount={Math.max(0, quoteRange.firstClean.low - pricingSummary.discountAmount)} />–<AnimatedPrice amount={Math.max(0, quoteRange.firstClean.high - pricingSummary.discountAmount)} />
+                                      </span>
+                                      <span className="price-card-save-badge">Save ${pricingSummary.discountAmount}</span>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="price-card-secondary-row">
+                                    <span className="price-card-secondary-price is-plain">
+                                      <AnimatedPrice amount={quoteRange.firstClean.low} />–<AnimatedPrice amount={quoteRange.firstClean.high} />
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </>
                           ) : (
-                            <p className="quote-live-disclaimer">
-                              Estimate based on your selections.{" "}
-                              <button type="button" className="quote-details-link" onClick={() => setShowDetailsModal(true)}>
-                                View details
-                              </button>
-                            </p>
+                            <>
+                              <div className="price-card-primary">
+                                <span className="price-card-label">{selectedServiceId === "deep" ? "From" : "Estimate"}</span>
+                                <span className="price-card-big">
+                                  <AnimatedPrice amount={quoteRange.low} />
+                                  {quoteRange.high !== quoteRange.low ? (<>–<AnimatedPrice amount={quoteRange.high} /></>) : null}
+                                </span>
+                                <span className="price-card-sub">
+                                  {selectedServiceId === "deep" ? (
+                                    <>
+                                      extras available ·{" "}
+                                      <button type="button" className="quote-details-link" onClick={() => setShowAddOnsModal(true)}>View add-ons</button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      based on your selections ·{" "}
+                                      <button type="button" className="quote-details-link" onClick={() => setShowDetailsModal(true)}>View details</button>
+                                    </>
+                                  )}
+                                </span>
+                              </div>
+                              {pricingSummary?.discountAmount ? (
+                                <>
+                                  <div className="price-card-divider" />
+                                  <div className="price-card-secondary">
+                                    <div className="price-card-label-row">
+                                      <span className="price-card-label">With code</span>
+                                      {pricingSummary.code ? <span className="price-card-code-chip">{pricingSummary.code}</span> : null}
+                                    </div>
+                                    <span className="price-card-strike-small">
+                                      <AnimatedPrice amount={quoteRange.low} />
+                                      {quoteRange.high !== quoteRange.low ? (<>–<AnimatedPrice amount={quoteRange.high} /></>) : null}
+                                    </span>
+                                    <div className="price-card-secondary-row">
+                                      <span className="price-card-secondary-price">
+                                        <AnimatedPrice amount={Math.max(0, quoteRange.low - pricingSummary.discountAmount)} />
+                                        {quoteRange.high !== quoteRange.low ? (<>–<AnimatedPrice amount={Math.max(0, quoteRange.high - pricingSummary.discountAmount)} /></>) : null}
+                                      </span>
+                                      <span className="price-card-save-badge">Save ${pricingSummary.discountAmount}</span>
+                                    </div>
+                                  </div>
+                                </>
+                              ) : null}
+                            </>
                           )}
                         </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {supportsReferralDiscount && (
-                    <div className="quote-referral-section">
-                      <div className="referral-input-row">
-                        <input
-                          name="discountCode"
-                          onChange={(event) => updateDiscountCode(event.target.value)}
-                          placeholder="Referral code (optional)"
-                          type="text"
-                          value={form.discountCode}
-                        />
-                        {discountState.status === "valid" && discountState.message ? (
-                          <span className="discount-applied-inline">{discountState.message}</span>
-                        ) : null}
-                        {discountState.status === "invalid" && discountState.message ? (
-                          <span className="discount-code-feedback is-error">{discountState.message}</span>
-                        ) : null}
-                      </div>
-                    </div>
-                  )}
+                      )}
+                    </aside>
+                  </div>
 
                 </>
               )}
@@ -1151,15 +1332,19 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                     <div className="review-card">
                       <span className="review-section-label">Service</span>
                       <span className="review-section-value">
-                        {selectedService.id === "regular"
-                          ? (form.frequency === "One-time" ? "One Time Cleaning" : "Regular Cleaning")
-                          : selectedService.title}
+                        {isHourlyMode
+                          ? "Hourly Cleaning"
+                          : selectedService.id === "regular"
+                            ? (form.frequency === "One-time" ? "One Time Cleaning" : "Regular Cleaning")
+                            : selectedService.title}
                       </span>
                       {quoteRange && (
                         <span className="review-price">
-                          {selectedService.id === "deep"
-                            ? `From $${quoteRange.low}`
-                            : `$${quoteRange.low}–$${quoteRange.high}`}
+                          {isHourlyMode
+                            ? `$${quoteRange.low}`
+                            : selectedService.id === "deep"
+                              ? `From $${quoteRange.low}`
+                              : `$${quoteRange.low}–$${quoteRange.high}`}
                         </span>
                       )}
                       {selectedService.id === "commercial" && (
@@ -1168,7 +1353,11 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                     </div>
 
                     <div className="review-card">
-                      <span className="review-section-label">Property</span>
+                      <span className="review-section-label">{isHourlyMode ? "Booking" : "Property"}</span>
+                      {isHourlyMode ? (
+                        <span className="review-section-value">{form.hourlyHours} cleaner-hours</span>
+                      ) : (
+                        <>
                       {form.bedrooms && <span className="review-section-value">{form.bedrooms}</span>}
                       {form.bathrooms && <span className="review-section-value">{form.bathrooms}</span>}
                       {selectedService.id === "regular" && form.frequency && (
@@ -1189,6 +1378,8 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                                 {item.label} {item.priceLabel ?? `+$${item.price}`}
                               </span>
                             ))}
+                        </>
+                      )}
                         </>
                       )}
                     </div>
@@ -1287,9 +1478,11 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                     <div className="result-summary-top">
                       {selectedService.id !== "commercial" && quoteRange && (
                         <strong className="result-summary-price">
-                          {selectedService.id === "deep"
-                            ? `From $${quoteRange.low}`
-                            : `$${quoteRange.low}–$${quoteRange.high}`}
+                          {isHourlyMode
+                            ? `$${quoteRange.low}`
+                            : selectedService.id === "deep"
+                              ? `From $${quoteRange.low}`
+                              : `$${quoteRange.low}–$${quoteRange.high}`}
                         </strong>
                       )}
                       {selectedService.id === "commercial" && (
@@ -1297,13 +1490,16 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                       )}
                       <div className="result-chip-row">
                         <span>
-                          {selectedService.id === "regular"
-                            ? (form.frequency === "One-time" ? "One Time Cleaning" : "Regular Cleaning")
-                            : selectedService.title}
+                          {isHourlyMode
+                            ? "Hourly Cleaning"
+                            : selectedService.id === "regular"
+                              ? (form.frequency === "One-time" ? "One Time Cleaning" : "Regular Cleaning")
+                              : selectedService.title}
                         </span>
-                        {form.bedrooms && <span>{form.bedrooms}</span>}
-                        {form.bathrooms && <span>{form.bathrooms}</span>}
-                        {selectedService.id === "regular" && form.frequency && <span>{form.frequency}</span>}
+                        {isHourlyMode && <span>{form.hourlyHours} hrs</span>}
+                        {!isHourlyMode && form.bedrooms && <span>{form.bedrooms}</span>}
+                        {!isHourlyMode && form.bathrooms && <span>{form.bathrooms}</span>}
+                        {!isHourlyMode && selectedService.id === "regular" && form.frequency && <span>{form.frequency}</span>}
                         {selectedService.id === "commercial" && form.siteType && <span>{form.siteType}</span>}
                         {selectedService.id === "deep" && form.addOns.length > 0 &&
                           deepCleaningAddOns
@@ -1388,36 +1584,36 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                 </div>
               )}
             </div>
-
-            {currentStep !== "select" && currentStep !== "result" ? (
-              <div className="booking-footer">
-                {displayStepIndex > 0 ? (
-                  <button
-                    className="ghost-button"
-                    disabled={isSubmitting}
-                    onClick={handlePrevious}
-                    type="button"
-                  >
-                    Previous
-                  </button>
-                ) : (
-                  <span className="booking-hint" />
-                )}
-
-                <button
-                  className="primary-button"
-                  disabled={isStepTransitioning || isSubmitting || isApplyingDiscount}
-                  onClick={handleNext}
-                  type="button"
-                >
-                  {(isSubmitting || isApplyingDiscount) ? <LoaderCircle className="spin" size={18} /> : null}
-                  {getPrimaryButtonLabel()}
-                  {!(isSubmitting || isApplyingDiscount) ? <ArrowRight size={18} /> : null}
-                </button>
-              </div>
-            ) : null}
           </div>
         </div>
+
+        {currentStep !== "select" && currentStep !== "result" ? (
+          <div className="booking-footer">
+            {displayStepIndex > 0 ? (
+              <button
+                className="ghost-button"
+                disabled={isSubmitting}
+                onClick={handlePrevious}
+                type="button"
+              >
+                Previous
+              </button>
+            ) : (
+              <span className="booking-hint" />
+            )}
+
+            <button
+              className="primary-button"
+              disabled={isStepTransitioning || isSubmitting || isApplyingDiscount}
+              onClick={handleNext}
+              type="button"
+            >
+              {(isSubmitting || isApplyingDiscount) ? <LoaderCircle className="spin" size={18} /> : null}
+              {getPrimaryButtonLabel()}
+              {!(isSubmitting || isApplyingDiscount) ? <ArrowRight size={18} /> : null}
+            </button>
+          </div>
+        ) : null}
       </div>
       {showAddOnsModal && createPortal(
         <div className="quote-modal-overlay" onClick={() => setShowAddOnsModal(false)}>
@@ -1444,18 +1640,85 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
             <button className="quote-modal-close" onClick={() => setShowDetailsModal(false)} type="button">✕</button>
             <h3>About your estimate</h3>
             <ul>
-              <li>This is an estimate based on your selections. Your final price is confirmed with you before work begins.</li>
-              {selectedServiceId === "regular" && !quoteRange?.isOneTime && (
-                <li>Your first visit is priced a little higher — it takes longer to get a home to baseline. Once we&apos;re into the routine, each visit stays within the ongoing estimate.</li>
+              {isHourlyMode ? (
+                <>
+                  <li>${HOURLY_RATE} per cleaner-hour. {HOURLY_MIN_HOURS} hours minimum, up to {HOURLY_MAX_HOURS} hours.</li>
+                  <li>Hours are flexible to schedule — for example, {HOURLY_MIN_HOURS} hours may mean 1 cleaner for {HOURLY_MIN_HOURS} hours, or 2 cleaners for 1.5 hours.</li>
+                  {discountState.status === "valid" && (
+                    <li>Your referral discount of ${discountState.discountAmount} applies to this booking.</li>
+                  )}
+                  <li>Arrival times may vary slightly depending on travel between jobs.</li>
+                </>
+              ) : (
+                <>
+                  <li>This is an estimate based on your selections. Your final price is confirmed with you before work begins.</li>
+                  {selectedServiceId === "regular" && !quoteRange?.isOneTime && (
+                    <li>Your first visit is priced a little higher — it takes longer to get a home to baseline. Once we&apos;re into the routine, each visit stays within the ongoing estimate.</li>
+                  )}
+                  {form.bathrooms && CLEANING_TIME_ESTIMATES[form.bathrooms] && (
+                    <li>For a home like yours, plan around <strong>{CLEANING_TIME_ESTIMATES[form.bathrooms]}</strong> per visit.</li>
+                  )}
+                  {discountState.status === "valid" && (
+                    <li>Your referral discount of ${discountState.discountAmount} applies to your first clean only.</li>
+                  )}
+                  <li>Arrival times may vary slightly depending on travel between jobs.</li>
+                </>
               )}
-              {form.bathrooms && CLEANING_TIME_ESTIMATES[form.bathrooms] && (
-                <li>Based on your bathroom count, expect {CLEANING_TIME_ESTIMATES[form.bathrooms]} per visit with 2 cleaners.</li>
-              )}
-              {discountState.status === "valid" && (
-                <li>Your referral discount of ${discountState.discountAmount} applies to your first clean only.</li>
-              )}
-              <li>Arrival times may vary slightly depending on travel between jobs.</li>
             </ul>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {showRegularCoverageModal && selectedService && createPortal(
+        <div className="quote-modal-overlay" onClick={() => setShowRegularCoverageModal(false)}>
+          <div className="quote-modal quote-modal-coverage" onClick={(e) => e.stopPropagation()}>
+            <button className="quote-modal-close" onClick={() => setShowRegularCoverageModal(false)} type="button">✕</button>
+            <h3>What&apos;s covered in every clean</h3>
+            <p className="quote-modal-intro">
+              Here&apos;s exactly what we look after each visit, room by room.
+            </p>
+            {(selectedService.includedGroups ?? []).map((group) => (
+              <div className="quote-modal-section" key={group.title}>
+                <span className="quote-modal-section-label">{group.title}</span>
+                <div className="quote-modal-coverage-grid">
+                  {group.details.map((item) => (
+                    <div className="quote-modal-coverage-row" key={item}>
+                      <CheckCircle2 size={14} />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {showHourlyCoverageModal && createPortal(
+        <div className="quote-modal-overlay" onClick={() => setShowHourlyCoverageModal(false)}>
+          <div className="quote-modal quote-modal-coverage" onClick={(e) => e.stopPropagation()}>
+            <button className="quote-modal-close" onClick={() => setShowHourlyCoverageModal(false)} type="button">✕</button>
+            <h3>How hourly cleans work</h3>
+            <p className="quote-modal-intro">
+              You&apos;re buying time — use it however you need. We can clean to the same standard as a
+              regular visit, or focus on the specific areas you point us to. These are just examples.
+            </p>
+            <div className="quote-modal-section">
+              <span className="quote-modal-section-label">Tips — areas customers often direct us to</span>
+              <div className="quote-modal-coverage-grid">
+                {HOURLY_FOCUS_AREAS.map((item) => (
+                  <div className="quote-modal-coverage-row" key={item}>
+                    <CheckCircle2 size={14} />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <p className="quote-modal-footnote">
+              ${HOURLY_RATE} per cleaner-hour. {HOURLY_MIN_HOURS} hours minimum, up to {HOURLY_MAX_HOURS} hours.
+            </p>
           </div>
         </div>,
         document.body

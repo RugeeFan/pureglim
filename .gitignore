@@ -12,3 +12,4 @@ npm-debug.log*
 # claude-mem session context (auto-generated)
 AGENTS.md
 .gstack/
+.claude/

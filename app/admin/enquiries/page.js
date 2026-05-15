@@ -266,7 +266,10 @@ export default async function EnquiriesPage({ searchParams }) {
                       </td>
                       <td>
                         <div className="admin-cell-stack">
-                          <span>{formatServiceTypeLabel(enq.serviceType.toLowerCase())}</span>
+                          <span>
+                            {formatServiceTypeLabel(enq.serviceType.toLowerCase())}
+                            {enq.hourlyHours ? ` · ${enq.hourlyHours} hrs` : ""}
+                          </span>
                           {enq.address ? <small>{enq.address}</small> : null}
                         </div>
                       </td>
@@ -350,7 +353,10 @@ export default async function EnquiriesPage({ searchParams }) {
                       >
                         {buildQuoteRequestReference(enq.id)}
                       </Link>
-                      <strong>{formatServiceTypeLabel(enq.serviceType.toLowerCase())}</strong>
+                      <strong>
+                        {formatServiceTypeLabel(enq.serviceType.toLowerCase())}
+                        {enq.hourlyHours ? ` · ${enq.hourlyHours} hrs` : ""}
+                      </strong>
                       <small>{formatDate(enq.createdAt)}</small>
                     </div>
                     <span className={`admin-badge admin-badge--${statusSlug}`}>

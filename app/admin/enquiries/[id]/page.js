@@ -183,6 +183,7 @@ export default async function EnquiryDetailPage({ params, searchParams }) {
           <span className="admin-detail-overview-label">Service</span>
           <strong className="admin-detail-overview-value">
             {formatServiceTypeLabel(enquiry.serviceType.toLowerCase())}
+            {enquiry.hourlyHours ? ` · ${enquiry.hourlyHours} hrs` : ""}
           </strong>
           <small>{formatDate(enquiry.createdAt)}</small>
         </article>
@@ -235,6 +236,10 @@ export default async function EnquiryDetailPage({ params, searchParams }) {
             <Field label="Bedrooms" value={enquiry.bedrooms} />
             <Field label="Bathrooms" value={enquiry.bathrooms} />
             <Field label="Frequency" value={enquiry.frequency} />
+            <Field
+              label="Cleaner Hours"
+              value={enquiry.hourlyHours != null ? `${enquiry.hourlyHours} hrs` : null}
+            />
             <Field label="Site Type" value={enquiry.siteType} />
             <Field label="Site Schedule" value={enquiry.siteSchedule} />
             <Field label="Add-ons" value={formatAddOns(enquiry.addOns)} />

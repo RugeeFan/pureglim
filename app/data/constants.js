@@ -52,12 +52,13 @@ const REGULAR_PRICE_TABLE = {
 export const REGULAR_PRICE_BUFFER = 25;   // range above minimum for regular cleans
 export const FIRST_CLEAN_PRICE_BUFFER = 40; // range above minimum for one-off / first clean
 
-// Approximate clean duration with 2 cleaners, by bathroom count
+// Customer-facing visit duration estimates (15-min range each).
+// Internally keyed off bathroom count, but never surfaced that way in copy.
 export const CLEANING_TIME_ESTIMATES = {
-  "1 Bathroom":   "About 30 min",
-  "2 Bathrooms":  "About 1 hr",
-  "3 Bathrooms":  "About 1.5 hrs",
-  "4+ Bathrooms": "About 2 hrs",
+  "1 Bathroom":   "30 to 45 mins",
+  "2 Bathrooms":  "1 hr to 1 hr 15 mins",
+  "3 Bathrooms":  "1 hr 30 mins to 1 hr 45 mins",
+  "4+ Bathrooms": "2 hrs to 2 hrs 15 mins",
 };
 
 function getComboKey(bedrooms, bathrooms) {
@@ -93,11 +94,11 @@ export function getValidBathroomOptions(bedrooms) {
 
 export const quoteBasePrices = {
   deep: {
-    "1 Bedroom":   280,
-    "2 Bedrooms":  320,
-    "3 Bedrooms":  360,
-    "4 Bedrooms":  530,
-    "5+ Bedrooms": 620,
+    "1 Bedroom":   300,
+    "2 Bedrooms":  340,
+    "3 Bedrooms":  380,
+    "4 Bedrooms":  550,
+    "5+ Bedrooms": 640,
   },
 };
 
@@ -112,13 +113,43 @@ export const bathroomAddOn = {
 
 export const quoteBaseRanges = {
   deep: {
-    "1 Bedroom":   { low: 280, high: 340 },
-    "2 Bedrooms":  { low: 320, high: 390 },
-    "3 Bedrooms":  { low: 360, high: 440 },
-    "4 Bedrooms":  { low: 530, high: 640 },
-    "5+ Bedrooms": { low: 620, high: 750 },
+    "1 Bedroom":   { low: 300, high: 360 },
+    "2 Bedrooms":  { low: 340, high: 410 },
+    "3 Bedrooms":  { low: 380, high: 460 },
+    "4 Bedrooms":  { low: 550, high: 660 },
+    "5+ Bedrooms": { low: 640, high: 770 },
   },
 };
+
+// ─── Hourly cleaning pricing ──────────────────────────────────────────────────
+// Flat per-cleaner-hour rate. 3 hour minimum, 10 hour maximum.
+
+export const HOURLY_RATE = 65;
+export const HOURLY_MIN_HOURS = 3;
+export const HOURLY_MAX_HOURS = 10;
+
+export const hourlyHourOptions = Array.from(
+  { length: HOURLY_MAX_HOURS - HOURLY_MIN_HOURS + 1 },
+  (_, i) => HOURLY_MIN_HOURS + i,
+);
+
+export function getHourlyPrice(hours) {
+  const numHours = Number(hours);
+  if (!Number.isFinite(numHours) || numHours < HOURLY_MIN_HOURS) return 0;
+  return numHours * HOURLY_RATE;
+}
+
+export const HOURLY_FOCUS_AREAS = [
+  "Floor-to-ceiling windows",
+  "Balcony or outdoor areas",
+  "Inside cabinets and drawers",
+  "Range hood and exhaust fan",
+  "Oven interior",
+  "Fridge interior",
+  "Walls and skirting boards",
+  "Pre-event or post-event tidy",
+  "Single-room deep clean",
+];
 
 export const services = [
   {
@@ -129,7 +160,7 @@ export const services = [
     description:
       "Your home kept on top of, without the effort of organising it each time. One-off, weekly, fortnightly, or monthly.",
     cardDescription:
-      "For homes that want reliable upkeep on a schedule that fits — or a one-off tidy when you need it.",
+      "Whole-home upkeep on a schedule, or pay by the hour to focus on a kitchen, bathroom, or any room that needs it.",
     featured: true,
     badge: "Popular",
     priceNote: "From $110",
@@ -152,6 +183,46 @@ export const services = [
       "Beds and sofas straightened",
       "General surface wipe-over",
     ],
+    includedGroups: [
+      {
+        title: "Kitchen",
+        summary: "Counters, walls, sink, bins, appliance exteriors polished.",
+        details: [
+          "Countertops and surfaces wiped",
+          "Splash zones and tiled walls cleaned",
+          "Sink scrubbed and dried",
+          "Bins emptied and liners replaced",
+          "Appliance exteriors polished — fridge, oven, microwave",
+          "Stovetop cleaned",
+        ],
+      },
+      {
+        title: "Bathroom",
+        summary: "All surfaces, shower glass, mould treated, bathtub, toilet inside and out.",
+        details: [
+          "All surfaces and fixtures wiped",
+          "Shower glass cleaned and polished",
+          "Walls treated where mould is present",
+          "Bathtub scrubbed",
+          "Toilet cleaned inside and out",
+          "Mirrors and fittings polished",
+          "Floor mopped",
+        ],
+      },
+      {
+        title: "Bedrooms & living",
+        summary: "Dusting, beds made, sofa cushions, blinds, skirting boards, mirrors.",
+        details: [
+          "Surface dusting — ledges, frames, ornaments",
+          "Beds made and tidied",
+          "Sofa cushions straightened",
+          "Blinds, slats, and windowsills wiped",
+          "Skirting boards detailed",
+          "Mirrors polished",
+        ],
+      },
+    ],
+    includedFloorsNote: "Vacuumed and mopped throughout the home.",
     highlights: [
       "Weekly, fortnightly, or monthly — your call",
       "Consistent and easy to rely on",

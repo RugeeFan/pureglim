@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Phone } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { navItems } from "./data/constants";
 import AboutPanel from "./components/AboutPanel";
 import BookingPanel from "./components/BookingPanel";
@@ -404,10 +404,6 @@ export default function Home() {
                 )}
               </div>
             ) : null}
-            <a className="contact-link" href="tel:+61000000000">
-              <Phone size={16} />
-              <span>+61 449 963 099</span>
-            </a>
           </div>
         </header>
 

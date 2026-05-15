@@ -401,7 +401,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 16px;
   opacity: 0;
   pointer-events: none;
   transform: scale(0.985);
@@ -419,13 +419,16 @@ button {
 
 .booking-shell {
   width: min(100%, 640px);
-  max-height: calc(100dvh - 48px);
-  padding: 26px 28px 30px;
+  max-height: 100%;
+  padding: 44px 28px 22px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 28px;
   background: rgba(11, 28, 24, 0.5);
   backdrop-filter: blur(24px);
   box-shadow: 0 24px 60px rgba(3, 10, 9, 0.22);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .booking-shell.is-muted {
@@ -440,8 +443,21 @@ button {
 }
 
 .booking-body-wrap {
-  overflow: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  flex: 1 1 auto;
+  min-height: 0;
   transition: height 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.booking-body-wrap::-webkit-scrollbar {
+  width: 6px;
+}
+
+.booking-body-wrap::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
 }
 
 .booking-body {
@@ -464,13 +480,13 @@ button {
 
 .booking-progress {
   display: flex;
-  gap: 8px;
-  margin-top: 14px;
+  gap: 6px;
+  margin-top: 0;
 }
 
 .booking-progress span {
-  width: 44px;
-  height: 4px;
+  width: 36px;
+  height: 3px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.14);
   transition: background 220ms ease;
@@ -495,7 +511,7 @@ button {
 
 .booking-copy {
   max-width: 30rem;
-  margin-top: 16px;
+  margin-top: 6px;
 }
 
 .booking-stage {
@@ -546,16 +562,16 @@ button {
 
 .booking-copy h2 {
   margin: 0;
-  font-size: clamp(1.95rem, 3vw, 2.7rem);
-  line-height: 0.98;
-  letter-spacing: -0.032em;
+  font-size: clamp(1.55rem, 2.4vw, 2.05rem);
+  line-height: 1.02;
+  letter-spacing: -0.028em;
 }
 
 .booking-copy p {
-  margin: 14px 0 0;
-  font-size: 1.02rem;
+  margin: 4px 0 0;
+  font-size: 0.92rem;
   color: var(--muted);
-  line-height: 1.68;
+  line-height: 1.45;
 }
 
 /* Compact heading variant — same font size, just tighter top margin */
@@ -570,22 +586,22 @@ button {
 
 .booking-form,
 .quote-grid {
-  margin-top: 16px;
+  margin-top: 8px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 8px;
 }
 
 .quote-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 5px;
 }
 
 .quote-group span {
-  font-size: 0.82rem;
-  color: rgba(245, 251, 248, 0.8);
-  letter-spacing: 0.04em;
+  font-size: 0.7rem;
+  color: rgba(245, 251, 248, 0.74);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -700,7 +716,7 @@ button {
 .choice-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 8px;
 }
 
 .frequency-grid {
@@ -740,9 +756,9 @@ button {
 
 .choice-grid-5col .choice-card,
 .choice-grid-4col .choice-card {
-  min-height: 52px;
-  padding: 12px 10px;
-  font-size: 0.88rem;
+  min-height: 38px;
+  padding: 7px 10px;
+  font-size: 0.84rem;
   text-align: center;
   justify-content: center;
   display: flex;
@@ -1255,6 +1271,42 @@ button {
 
 .contact-grid .contact-card.wide {
   grid-column: 1 / -1;
+}
+
+.contact-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.contact-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(10, 15, 13, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: rgba(245, 251, 248, 0.92);
+  text-decoration: none;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+.contact-chip:hover {
+  border-color: rgba(255, 255, 255, 0.32);
+  background: rgba(10, 15, 13, 0.78);
+  color: #fff;
+}
+
+.contact-chip-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
 .about-lead-card,
@@ -2782,11 +2834,11 @@ a.contact-card:hover {
 
 /* ── Quote step: live estimate reveal ────────────────────────────────────── */
 .quote-live-estimate {
-  margin-top: 28px;
-  padding: 22px 24px;
+  margin-top: 10px;
+  padding: 10px 18px;
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.11);
-  border-radius: 16px;
+  border-radius: 14px;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
@@ -2824,6 +2876,253 @@ a.contact-card:hover {
   color: rgba(245, 251, 248, 0.4);
   margin: 0;
   line-height: 1.5;
+}
+
+.quote-live-detail-final {
+  margin-top: 4px;
+  color: rgba(245, 251, 248, 0.92);
+  font-size: 0.92rem;
+}
+
+.pricing-mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.pricing-mode-option {
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  padding: 7px 16px;
+  cursor: pointer;
+  color: rgba(245, 251, 248, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  text-align: center;
+}
+
+.pricing-mode-option:hover {
+  color: rgba(245, 251, 248, 0.95);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.pricing-mode-option.is-active {
+  background: rgba(245, 251, 248, 0.96);
+  color: #0f1714;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
+.pricing-mode-option.is-active:hover {
+  background: rgba(245, 251, 248, 0.96);
+}
+
+.pricing-mode-label {
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.pricing-mode-sub {
+  font-size: 0.72rem;
+  opacity: 0.7;
+  letter-spacing: 0.01em;
+}
+
+.pricing-mode-option.is-active .pricing-mode-sub {
+  opacity: 0.7;
+}
+
+.choice-grid.hourly-hours-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.quote-included-inline {
+  margin-top: 8px;
+  padding: 8px 16px 10px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+}
+
+.quote-included-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.quote-included-label {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245, 251, 248, 0.62);
+}
+
+.quote-included-cta {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: rgba(245, 251, 248, 0.88);
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  transition: color 0.18s ease;
+}
+
+.quote-included-cta:hover {
+  color: rgba(245, 251, 248, 1);
+}
+
+.quote-included-cta svg {
+  transition: transform 0.18s ease;
+}
+
+.quote-included-cta:hover svg {
+  transform: translateX(2px);
+}
+
+.quote-included-groups {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px 20px;
+}
+
+.quote-included-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quote-included-group-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(245, 251, 248, 0.95);
+  letter-spacing: 0.01em;
+}
+
+.quote-included-group p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(245, 251, 248, 0.66);
+  line-height: 1.4;
+}
+
+.quote-included-prose {
+  margin: 0;
+  font-size: 0.86rem;
+  color: rgba(245, 251, 248, 0.72);
+  line-height: 1.6;
+}
+
+.quote-included-footnote {
+  margin: 6px 0 0;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.76rem;
+  color: rgba(245, 251, 248, 0.6);
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+}
+
+.quote-modal-coverage h3 {
+  margin-bottom: 8px;
+}
+
+.quote-modal-intro {
+  margin: 0 0 18px;
+  font-size: 0.92rem;
+  color: rgba(245, 251, 248, 0.7);
+  line-height: 1.55;
+}
+
+.quote-modal-section {
+  margin-top: 18px;
+}
+
+.quote-modal-section-label {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245, 251, 248, 0.5);
+  margin-bottom: 10px;
+}
+
+.quote-modal-coverage-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+}
+
+.quote-modal-coverage-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: rgba(245, 251, 248, 0.85);
+  line-height: 1.45;
+}
+
+.quote-modal-coverage-row svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: rgba(245, 251, 248, 0.55);
+}
+
+.quote-modal-summary {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  color: rgba(245, 251, 248, 0.82);
+  line-height: 1.5;
+}
+
+.quote-modal-bullets {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.88rem;
+  color: rgba(245, 251, 248, 0.7);
+  line-height: 1.6;
+}
+
+.quote-modal-footnote {
+  margin: 18px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.82rem;
+  color: rgba(245, 251, 248, 0.55);
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .quote-included-groups {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .quote-modal-coverage-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .choice-grid.hourly-hours-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .booking-footer-code {
@@ -4181,10 +4480,10 @@ a.contact-card:hover {
 
 /* ── Referral code in quote step ───────────────────────────────────────────── */
 .quote-referral-section {
-  margin-top: 20px;
+  margin-top: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .quote-referral-copy {
@@ -4262,16 +4561,16 @@ a.contact-card:hover {
 
 .quote-referral-section input {
   width: 100%;
-  max-width: 280px;
-  min-height: 50px;
-  padding: 0 16px;
+  max-width: 260px;
+  min-height: 38px;
+  padding: 0 14px;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 16px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.08);
   color: var(--text);
   outline: none;
   backdrop-filter: blur(10px);
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   transition:
     border-color 180ms ease,
     background 180ms ease,
@@ -4654,4 +4953,429 @@ a.contact-card:hover {
 .pac-icon,
 .pac-icon-marker {
   display: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Quote step — two-column layout with sticky PriceCard
+   ─────────────────────────────────────────────────────────────────────────
+   Left column = options (bedrooms/baths/freq OR hourly hours).
+   Right column = sticky PriceCard containing mode toggle + price hero.
+   Unifies home-size and hourly visual hierarchy. Fits a single viewport.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.quote-shell-twocol {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 18px;
+  align-items: start;
+  margin-top: 8px;
+}
+
+.quote-options-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.quote-options-col > .quote-included-pitch {
+  margin-top: auto;
+}
+
+.quote-options-col .quote-grid,
+.quote-options-col .quote-grid-regular,
+.quote-options-col .quote-grid-deep {
+  margin-top: 0;
+}
+
+.price-card {
+  position: sticky;
+  top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+
+.price-card .pricing-mode-toggle {
+  margin: 0;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.price-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.price-card-primary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.price-card-sub {
+  font-size: 0.78rem;
+  color: rgba(245, 251, 248, 0.55);
+  line-height: 1.4;
+}
+
+.price-card-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.09);
+  margin: 8px 0 2px;
+}
+
+.price-card-secondary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.price-card-secondary > * {
+  opacity: 0;
+  animation: pcStagger 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.price-card-secondary > *:nth-child(1) { animation-delay: 40ms; }
+.price-card-secondary > *:nth-child(2) { animation-delay: 160ms; }
+.price-card-secondary > *:nth-child(3) { animation-delay: 260ms; }
+.price-card-secondary > *:nth-child(4) { animation-delay: 360ms; }
+
+@keyframes pcStagger {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Code chip slides in from the left of the label row */
+.price-card-secondary .price-card-code-chip {
+  animation: pcChipIn 0.42s 200ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes pcChipIn {
+  from { opacity: 0; transform: translateX(-8px) scale(0.85); }
+  60%  { transform: translateX(0) scale(1.06); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+.price-card-secondary-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Strike-through drawn from left to right after the price appears */
+.price-card-strike-small {
+  position: relative;
+  font-size: 0.95rem;
+  text-decoration: none;
+  opacity: 0.42;
+  color: var(--text);
+  line-height: 1;
+  display: inline-block;
+  width: fit-content;
+}
+
+.price-card-strike-small::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 52%;
+  height: 1.5px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: pcStrikeDraw 0.38s 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes pcStrikeDraw {
+  to { transform: scaleX(1); }
+}
+
+.price-card-strike-small strong {
+  font-size: inherit;
+  font-weight: 500;
+  color: inherit;
+}
+
+.price-card-secondary-price {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #6ee7b7;
+  letter-spacing: -0.015em;
+  line-height: 1;
+}
+
+/* Save badge springs in after the discounted price */
+.price-card-secondary .price-card-save-badge {
+  animation: pcBadgePop 0.5s 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transform-origin: left center;
+}
+
+@keyframes pcBadgePop {
+  from { opacity: 0; transform: scale(0.55) translateX(-4px); }
+  55%  { transform: scale(1.12) translateX(0); }
+  85%  { transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1) translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .price-card-secondary > *,
+  .price-card-secondary .price-card-code-chip,
+  .price-card-secondary .price-card-save-badge,
+  .price-card-strike-small::after {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .price-card-strike-small {
+    text-decoration: line-through;
+  }
+}
+
+.price-card-secondary-price.is-plain {
+  color: var(--text);
+}
+
+.price-card-secondary-price strong {
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+}
+
+.price-card-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.price-card-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(245, 251, 248, 0.6);
+  font-weight: 600;
+}
+
+.price-card-code-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 999px;
+  background: rgba(110, 231, 183, 0.14);
+  border: 1px solid rgba(110, 231, 183, 0.35);
+  color: #6ee7b7;
+  letter-spacing: 0.02em;
+}
+
+.price-card-inline-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+  color: rgba(245, 251, 248, 0.62);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.price-card-inline-link:hover {
+  color: rgba(245, 251, 248, 0.95);
+}
+
+.price-card-code-chip::before {
+  content: "✓";
+  font-size: 0.78rem;
+}
+
+/* Hero — works for both hourly and home-size discounted views.
+   Reuses .first-visit-deal animation/colors. */
+.price-card-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: dealReveal 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.price-card-strike {
+  font-size: 1.1rem;
+  text-decoration: line-through;
+  opacity: 0.38;
+  color: var(--text);
+  line-height: 1;
+}
+
+.price-card-hero-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.price-card-big {
+  font-size: 2.15rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  color: var(--text);
+}
+
+.price-card-big strong {
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+.price-card-big.is-plain {
+  color: var(--text);
+}
+
+.price-card-strike strong {
+  font-size: inherit;
+  font-weight: 500;
+  color: inherit;
+}
+
+.price-card-foot strong strong {
+  font-weight: inherit;
+}
+
+.price-card-save-badge {
+  background: rgba(110, 231, 183, 0.14);
+  border: 1px solid rgba(110, 231, 183, 0.35);
+  color: #6ee7b7;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.price-card-foot {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: rgba(245, 251, 248, 0.7);
+}
+
+.price-card-foot strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.price-card-foot .quote-details-link {
+  font-size: 0.78rem;
+}
+
+/* "What's included" — value-prop one-liner + question-style CTA */
+.quote-included-pitch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 4px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.quote-included-pitch-headline {
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: rgba(245, 251, 248, 0.78);
+}
+
+.quote-included-pitch-headline strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.quote-included-pitch-cta {
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  padding: 6px 13px;
+  color: rgba(245, 251, 248, 0.96);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+  white-space: nowrap;
+}
+
+.quote-included-pitch-cta:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateX(2px);
+}
+
+.quote-included-pitch-cta svg {
+  transition: transform 0.18s ease;
+}
+
+.quote-included-pitch-cta:hover svg {
+  transform: translateX(2px);
+}
+
+/* Hourly mode small inline tip (replaces right-col disclaimer) */
+.quote-hourly-tip {
+  margin-top: 4px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: rgba(245, 251, 248, 0.7);
+}
+
+.quote-hourly-tip strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Responsive — stack the two columns under 760px (mobile / narrow) */
+@media (max-width: 760px) {
+  .quote-shell-twocol {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .price-card {
+    position: static;
+    order: 2;
+  }
+  .quote-options-col {
+    order: 1;
+  }
+  .price-card-big {
+    font-size: 1.8rem;
+  }
 }

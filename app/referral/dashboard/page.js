@@ -213,7 +213,10 @@ export default async function ReferralDashboardPage() {
                           <span className="referral-booking-reference">
                             {buildQuoteRequestReference(booking.id)}
                           </span>
-                          <strong>{formatServiceTypeLabel(booking.serviceType.toLowerCase())}</strong>
+                          <strong>
+                            {formatServiceTypeLabel(booking.serviceType.toLowerCase())}
+                            {booking.hourlyHours ? ` · ${booking.hourlyHours} hrs` : ""}
+                          </strong>
                         </div>
                         <span
                           className={`referral-status-badge referral-status-${booking.status
@@ -294,7 +297,10 @@ export default async function ReferralDashboardPage() {
                       return (
                         <tr key={booking.id}>
                           <td>{buildQuoteRequestReference(booking.id)}</td>
-                          <td>{formatServiceTypeLabel(booking.serviceType.toLowerCase())}</td>
+                          <td>
+                            {formatServiceTypeLabel(booking.serviceType.toLowerCase())}
+                            {booking.hourlyHours ? ` · ${booking.hourlyHours} hrs` : ""}
+                          </td>
                           <td>
                             <div className="referral-cell-stack">
                               <span>{booking.customerDisplayName}</span>
