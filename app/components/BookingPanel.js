@@ -854,7 +854,11 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                 <>
                   <div className="booking-copy booking-copy-wide">
                     <h2>Get your estimate.</h2>
-                    <p>{selectedService.quote.prompt}</p>
+                    <p>
+                      {isHourlyMode
+                        ? "Buy cleaner-hours and point us to whatever you need done. Your estimate appears below."
+                        : selectedService.quote.prompt}
+                    </p>
                   </div>
 
                   <div className="quote-shell-twocol">
@@ -1015,6 +1019,8 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                         <div className="quote-included-pitch">
                           <span className="quote-included-pitch-headline">
                             <strong>${HOURLY_RATE} per cleaner-hour</strong> · {HOURLY_MIN_HOURS} hrs min. {HOURLY_MIN_HOURS} hrs may be 1 cleaner × {HOURLY_MIN_HOURS}h, or 2 cleaners × 1.5h.
+                            <br />
+                            Point us to specific tasks beyond a tidy clean — windows, oven, balcony, you name it.
                           </span>
                           <button
                             type="button"
