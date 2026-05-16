@@ -69,8 +69,8 @@ function getSteps(serviceId) {
 
 function getInitialFormState() {
   return {
-    bedrooms: "1 Bedroom",
-    bathrooms: "1 Bathroom",
+    bedrooms: "",
+    bathrooms: "",
     frequency: "Weekly",
     hourlyMode: false,
     hourlyHours: HOURLY_MIN_HOURS,
@@ -1077,6 +1077,16 @@ export default function BookingPanel({ isOpen, onClose, onGoHome, initialService
                             <span className="pricing-mode-label">By the hour</span>
                             <span className="pricing-mode-sub">${HOURLY_RATE}/hr</span>
                           </button>
+                        </div>
+                      )}
+
+                      {!quoteRange && !isHourlyMode && selectedService.id === "regular" && (
+                        <div className="price-card-body">
+                          <div className="price-card-primary">
+                            <span className="price-card-label">Estimate</span>
+                            <span className="price-card-big is-placeholder">Choose your home size</span>
+                            <span className="price-card-sub">Pick bedrooms, bathrooms &amp; frequency below</span>
+                          </div>
                         </div>
                       )}
 
