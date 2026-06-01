@@ -442,7 +442,7 @@ export default function Home() {
         </div>
 
         <div className="page-meta" aria-hidden="true">
-          <span>© 2026 PureGlim</span>
+          <span>© 2026 PureGlim Cleaning · Ruge Solutions Pty Ltd · ABN 54 696 869 495</span>
           <span className="page-meta-dot">·</span>
           <button type="button" onClick={() => openPanel("faq")}>FAQ</button>
           <span className="page-meta-dot">·</span>

@@ -105,6 +105,10 @@ export default function ContactPanel({ isOpen }) {
             <span>Instagram</span>
           </a>
         </div>
+
+        <p className="contact-legal">
+          PureGlim Cleaning is a trading name of Ruge Solutions Pty Ltd · ABN 54 696 869 495
+        </p>
       </div>
     </section>
   );

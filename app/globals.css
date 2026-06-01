@@ -1280,6 +1280,14 @@ button {
   margin-top: 8px;
 }
 
+.contact-legal {
+  margin-top: 28px;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: rgba(245, 251, 248, 0.42);
+}
+
 .contact-chip {
   display: inline-flex;
   align-items: center;
