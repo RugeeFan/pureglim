@@ -1280,6 +1280,10 @@ button {
   margin-top: 8px;
 }
 
+.contact-follow-head {
+  margin-top: 36px;
+}
+
 .contact-legal {
   margin-top: 28px;
   font-size: 0.72rem;
@@ -2499,7 +2503,7 @@ a.contact-card:hover {
   .hero-actions-wrap {
     position: absolute;
     right: 8px;
-    bottom: 18px;
+    bottom: 56px;
     width: auto;
     z-index: 6;
     margin-top: 0;
