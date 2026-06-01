@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "NODE_OPTIONS='--max-old-space-size=4096' next dev",
     "dev:8080": "NODE_OPTIONS='--max-old-space-size=4096' next dev -p 8080",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "db:start": "docker compose up -d postgres",
     "db:stop": "docker compose down",
